@@ -1,6 +1,8 @@
 package Game;
 
-public class PlayerData {
+import java.io.Serializable;
+
+public class PlayerData implements Serializable {
 	private String playerName; 
 	private String playerId; 
 	

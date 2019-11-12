@@ -1,4 +1,4 @@
-package GameUI;
+package Communication.ServerCommunication;
 
 import java.io.Serializable;
 
