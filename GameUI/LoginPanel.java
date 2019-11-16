@@ -1,5 +1,6 @@
 package GameUI;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 
 import javax.swing.BoxLayout;
@@ -10,6 +11,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class LoginPanel extends JPanel{
+	private JLabel errorLabel; 
 	private JLabel title; 
 	private JLabel usernameLabel; 
 	private JLabel passwordLabel;
@@ -19,7 +21,9 @@ public class LoginPanel extends JPanel{
 	private JButton cancelButton; 
 	
 	
-	public LoginPanel() {
+	public LoginPanel(GameGUI gameGUI) {
+		this.errorLabel = new JLabel(" "); 
+		this.errorLabel.setForeground(Color.RED);
 		this.title = new JLabel("Enter your login information");
 		this.usernameLabel = new JLabel("Username"); 
 		this.passwordLabel = new JLabel("Password");
@@ -27,6 +31,14 @@ public class LoginPanel extends JPanel{
 		this.passwordField = new JPasswordField(10); 
 		this.submitButton = new JButton("Submit");
 		this.cancelButton = new JButton("Cancel"); 
+		
+		//set up the buttons
+		LoginController loginController = new LoginController(this, gameGUI); 
+		this.submitButton.setName("Submit");
+		this.cancelButton.setName("Cancel");
+		this.submitButton.addActionListener(loginController);
+		this.cancelButton.addActionListener(loginController);
+		
 		
 		
 		//again, we need to make sure each of the components are wrapped in a panel, as the formatting will be off otherwise
@@ -80,13 +92,32 @@ public class LoginPanel extends JPanel{
 		
 		JPanel overallStack = new JPanel(); 
 		overallStack.setLayout(new BoxLayout(overallStack, BoxLayout.PAGE_AXIS));
+		overallStack.add(this.errorLabel); 
 		overallStack.add(titleSection); 
-		overallStack.add(fieldBox); 
-		overallStack.add(buttonGrid); 
+		
+		//BIG SHOCKER HERE!!! IT IS MESSING UP THE FORMATTING EVEN MORE
+		//need to add more containers
+		JPanel holder1 = new JPanel(); 
+		JPanel holder2 = new JPanel(); 
+		holder1.add(fieldBox); 
+		holder2.add(buttonGrid); 
+		overallStack.add(holder1); 
+		overallStack.add(holder2); 
 		
 		this.add(overallStack); 
 		
 	}
 	
+	public JTextField getUsernameField() {
+		return usernameField;
+	}
+	
+	public JPasswordField getPasswordField() {
+		return passwordField;
+	}
+	
+	public JLabel getErrorLabel() {
+		return errorLabel;
+	}
 	
 }

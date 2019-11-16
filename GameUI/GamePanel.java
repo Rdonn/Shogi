@@ -25,7 +25,7 @@ public class GamePanel extends JPanel{
 	JButton forfeit; 
 	JLabel errorTitle; 
 	private JLabel title; 
-	public GamePanel() {
+	public GamePanel(GameGUI gameGUI) {
 		try {
 			this.board = new Board();
 		} catch (Exception e) {

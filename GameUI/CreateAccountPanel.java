@@ -1,5 +1,6 @@
 package GameUI;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 
 import javax.swing.Box;
@@ -11,6 +12,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class CreateAccountPanel extends JPanel{
+	private JLabel error; 
 	private JLabel title; 
 	private JLabel userNameLabel;
 	private JLabel passwordLabel; 
@@ -23,8 +25,9 @@ public class CreateAccountPanel extends JPanel{
 	private JButton submitButton; 
 	private JButton cancelButton; 
 	
-	public CreateAccountPanel() {
-		
+	public CreateAccountPanel(GameGUI gameGUI) {
+		this.error = new JLabel(); 
+		this.error.setForeground(Color.red);
 		this.title = new JLabel("Create an account"); 
 		this.userNameLabel = new JLabel("Username"); 
 		this.passwordLabel = new JLabel("Password"); 
@@ -35,7 +38,11 @@ public class CreateAccountPanel extends JPanel{
 		this.submitButton = new JButton("Submit"); 
 		this.cancelButton = new JButton("Cancel"); 
 		
-		CreateAccountController controller = new CreateAccountController(this); 
+		this.submitButton.setName("Submit");
+		this.cancelButton.setName("Cancel");
+		
+		
+		CreateAccountController controller = new CreateAccountController(this, gameGUI); 
 		
 		//set up some basic behaviors for the buttons
 		this.submitButton.addActionListener(controller);
@@ -181,5 +188,8 @@ public class CreateAccountPanel extends JPanel{
 
 	public void setCancelButton(JButton cancelButton) {
 		this.cancelButton = cancelButton;
+	}
+	public JLabel getError() {
+		return error;
 	}
 }
