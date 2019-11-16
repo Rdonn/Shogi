@@ -10,10 +10,19 @@ public class InitialPanel extends JPanel{
 	private JButton loginButton; 
 	private JButton createAccountButton; 
 	
-	public InitialPanel() {
+	public InitialPanel(GameGUI gameGUI) {
 		this.title = new JLabel("Welcome to Shogi! Select an option"); 
 		this.loginButton = new JButton("Login"); 
 		this.createAccountButton = new JButton("Create Account"); 
+		
+		//set up some buttons names to make the controller functionality more explicit
+		this.loginButton.setName("Login");
+		this.createAccountButton.setName("Create Account");
+		
+		InitialController initialController = new InitialController(this, gameGUI); 
+		
+		this.loginButton.addActionListener(initialController);
+		this.createAccountButton.addActionListener(initialController);
 		
 		//need to keep them all in their individual container to avoid any bullshit 
 		
