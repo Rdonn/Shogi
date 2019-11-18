@@ -1,6 +1,8 @@
 package GameUI;
 
-public class CreateAccountData {
+import java.io.Serializable;
+
+public class CreateAccountData implements Serializable{
 	private String username; 
 	private String password; 
 	

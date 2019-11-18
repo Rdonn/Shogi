@@ -11,6 +11,7 @@ public class CreateGameController implements ActionListener{
 	private GameGUI view; 
 	public CreateGameController(CreateGamePanel createGamePanel, GameGUI gameGUI) {
 		// TODO Auto-generated constructor stub
+		GameGUI.getClientConnection().setCreateGameController(this);
 		this.createGamePanel = createGamePanel; 
 		this.view = gameGUI; 
 	}

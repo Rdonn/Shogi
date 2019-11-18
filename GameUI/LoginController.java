@@ -7,12 +7,15 @@ import javax.swing.JButton;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import Communication.ServerCommunication.PlayerLoginData;
+
 public class LoginController implements ActionListener{
 
 	LoginPanel loginPanel; 
 	GameGUI view; 
 	public LoginController(LoginPanel loginPanel, GameGUI view) {
 		// TODO Auto-generated constructor stub
+		GameGUI.getClientConnection().setLoginController(this);
 		this.loginPanel = loginPanel; 
 		this.view = view; 
 	}
@@ -23,7 +26,7 @@ public class LoginController implements ActionListener{
 			if (actionButton.getName().equals("Submit")) {
 			   //later logic can be added here... for the time being, we will rotate back to the initial panel so i dont have to restart for testing
 				String username = this.loginPanel.getUsernameField().getText(); 
-				String password = this.loginPanel.getPasswordField().getPassword().toString(); 
+				String password = new String(this.loginPanel.getPasswordField().getPassword());
 				System.out.println("Made it here");
 				if (username.length() < 6 || password.length() < 6) {
 					this.setError("Both fields are, by default, required to be longer than 6 characters");
@@ -34,8 +37,8 @@ public class LoginController implements ActionListener{
 				}
 				
 				//need to contact the communication object HERE
-				
 				this.view.shuffleSelectCreateGameOrSelectGamePanel();
+				GameGUI.getClientConnection().sendPlayerLoginData(new PlayerLoginData(username, password));
 			}
 			else if(actionButton.getName().equals("Cancel")) {
 				setError(" ");
@@ -63,5 +66,6 @@ public class LoginController implements ActionListener{
 
 	//call this is there is a login success
 	public void loginSuccess() {
+		this.view.shuffleSelectCreateGameOrSelectGamePanel();
 	}
 }

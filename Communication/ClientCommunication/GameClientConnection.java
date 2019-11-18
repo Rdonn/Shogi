@@ -30,7 +30,7 @@ public class GameClientConnection extends AbstractClient {
 	public GameClientConnection() {
 		this("127.0.0.1", 8300);
 	}
-	
+
 
 	/***
 	 * 

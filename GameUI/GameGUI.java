@@ -8,16 +8,18 @@ import java.util.Timer;
 import javax.swing.JFrame;
 
 import Communication.ClientCommunication.GameClientConnection;
+import Game.PlayerData;
 
 public class GameGUI extends JFrame{
 	private static GameClientConnection clientConnection; 
+	private static PlayerData playerData; 
 	public GameGUI(String IP, int PORT) throws IOException {
 		// TODO Auto-generated constructor stub
 		
 		clientConnection = new GameClientConnection(IP, PORT); 
 		
 		//we need this to run... so going to throw error from this constructor if it doesn't work, exiting before GUI logic
-		clientConnection.openConnection();
+		//clientConnection.openConnection();
 		
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -35,6 +37,14 @@ public class GameGUI extends JFrame{
 		this.setVisible(true);
 		this.pack();
 	
+	}
+	
+	public static void setPlayerData(PlayerData playerData) {
+		GameGUI.playerData = playerData; 
+	}
+	
+	public static PlayerData getPlayerData() {
+		return playerData;
 	}
 	
 	public static GameClientConnection getClientConnection() {

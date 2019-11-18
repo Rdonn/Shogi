@@ -5,12 +5,15 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 
+import Communication.ServerCommunication.PlayerNewAccountData;
+
 public class CreateAccountController implements ActionListener{
 
 	private CreateAccountPanel createAccountPanelReference; 
 	private GameGUI view; 
 	public CreateAccountController(CreateAccountPanel createAccountPanel, GameGUI view) {
 		// TODO Auto-generated constructor stub
+		GameGUI.getClientConnection().setCreateAccountController(this);
 		this.view = view; 
 		this.createAccountPanelReference = createAccountPanel; 
 	}
@@ -41,7 +44,7 @@ public class CreateAccountController implements ActionListener{
 				//set an error if not. 
 				
 				//communication object
-				this.createAccountSuccess();
+				GameGUI.getClientConnection().sendPlayerNewAccountData(new PlayerNewAccountData(username, passwordOne));
 			}
 			else if (actionButton.getName().contentEquals("Cancel")) {
 				this.view.shuffleToInitial();
