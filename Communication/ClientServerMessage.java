@@ -15,7 +15,9 @@ public enum ClientServerMessage implements Serializable {
 	LOGIN_FAILURE,
 	GAME_DATA,
 	LOGIN,
-	NEW_ACCOUNT;
+	NEW_ACCOUNT,
+	NEW_ACCOUNT_SUCCESS,
+	NEW_ACCOUNT_FAILURE;
 	
 	
 	private Serializable data;

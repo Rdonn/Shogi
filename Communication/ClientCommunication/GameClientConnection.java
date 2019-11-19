@@ -107,11 +107,19 @@ public class GameClientConnection extends AbstractClient {
 			}
 			
 			if(message == ClientServerMessage.LOGIN_FAILURE) {
-				handleReceiveLoginFailure();
+				handleReceiveLoginFailure(message);
 			}
 			
 			if(message == ClientServerMessage.LOGIN_SUCCESS) {
 				handleReceiveLoginSuccess();
+			}
+			
+			if(message == ClientServerMessage.NEW_ACCOUNT_FAILURE) {
+				handleReceiveNewAccountFailure(message);
+			}
+			
+			if(message == ClientServerMessage.NEW_ACCOUNT_SUCCESS) {
+				handleReceiveNewAccountSuccess();
 			}
 			
 			if(message == ClientServerMessage.LEFT_GAME) {
@@ -129,21 +137,27 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	private void handleReceiveLoginSuccess() {
-		//TODO: Communicate with LoginController to open the next panel after a successful login
-		
+		loginController.loginSuccess();
 	}
 	
-	private void handleReceiveLoginFailure() {
-		//TODO: Communicate with LoginController to display error
-		
+	private void handleReceiveLoginFailure(ClientServerMessage message) {
+		if(message.getData() != null && message.getData() instanceof String) {
+			loginController.loginFailure((String) message.getData());
+		} else {
+			loginController.loginFailure("Failed to login! Invalid information or the database is down!");
+		}
 	}
 	
-	private void handleReceiveNewACcountSuccess() {
-		
+	private void handleReceiveNewAccountSuccess() {
+		createAccountController.createAccountSuccess();
 	}
 	
-	private void handleReceiveNewAccountFailure() {
-		
+	private void handleReceiveNewAccountFailure(ClientServerMessage message) {
+		if(message.getData() != null && message.getData() instanceof String) {
+			createAccountController.createAccountFailure((String) message.getData());
+		} else {
+			createAccountController.createAccountFailure("Failed to login! Invalid information or the database is down!");
+		}
 	}
 	
 	private void handleReceiveGameRooms(GameRoomData[] rooms) {
@@ -155,11 +169,23 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void sendPlayerLoginData(PlayerLoginData data) {
-		
+		ClientServerMessage message = ClientServerMessage.LOGIN;
+		message.setData(data);
+		try {
+			this.sendToServer(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void sendPlayerNewAccountData(PlayerNewAccountData data) {
-		
+		ClientServerMessage message = ClientServerMessage.NEW_ACCOUNT;
+		message.setData(data);
+		try {
+			this.sendToServer(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void sendNewGameRoom(GameRoomData gameRoom) {
