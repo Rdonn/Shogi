@@ -2,13 +2,21 @@ package GameUI;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JButton;
+
+import Communication.ServerCommunication.GameRoomData;
 
 public class SelectGameController implements ActionListener{
 
 	private SelectGamePanel selectGamePanel; 
 	private GameGUI view; 
+	
+
+	private List<GameRoomData> gameRooms = new ArrayList<>();
 	
 	public SelectGameController(SelectGamePanel selectGamePanel, GameGUI view) {
 		// TODO Auto-generated constructor stub
@@ -30,5 +38,8 @@ public class SelectGameController implements ActionListener{
 		
 	}
 
+	public void setGameRooms(GameRoomData[] gameRooms) {
+		this.gameRooms = Arrays.asList(gameRooms);
+	}
 	
 }

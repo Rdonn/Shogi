@@ -2,6 +2,7 @@ package Communication.ClientCommunication;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
 import Communication.ClientServerMessage;
 import Communication.ServerCommunication.GameRoomData;
@@ -128,12 +129,24 @@ public class GameClientConnection extends AbstractClient {
 					//TODO: Client1 receives message that Client2 left the game from server
 				}
 			}
+			
+			if(message == ClientServerMessage.REQUEST_GAME_ROOMS) {
+				if(message.getData() instanceof List<?>) {
+					List<?> data = (List<?>) message.getData();
+					if(data.size() >= 0 || data.get(0) instanceof GameRoomData) {
+						List<GameRoomData> gameRooms = (List<GameRoomData>) data;
+						
+						handleReceiveGameRooms((GameRoomData[]) gameRooms.toArray()); 
+					}
+				}
+			}
 		}
 		
 	}
 	
 	private void handleReceiveGameData(Game game) {
 		//TODO: Update board, join game?, etc.
+		
 	}
 	
 	private void handleReceiveLoginSuccess() {
@@ -161,11 +174,17 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	private void handleReceiveGameRooms(GameRoomData[] rooms) {
-		
+		selectGameController.setGameRooms(rooms);
 	}
 	
 	public void sendGameForVerification(Game game) {
-		
+		ClientServerMessage message = ClientServerMessage.GAME_DATA;
+		message.setData(game);
+		try {
+			this.sendToServer(game);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void sendPlayerLoginData(PlayerLoginData data) {
@@ -189,7 +208,13 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void sendNewGameRoom(GameRoomData gameRoom) {
-		
+		ClientServerMessage message = ClientServerMessage.NEW_GAME_ROOM;
+		message.setData(gameRoom);
+		try {
+			this.sendToServer(gameRoom);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void sendLeftGame(PlayerData playerData) {
