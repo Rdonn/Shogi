@@ -11,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import Communication.ClientCommunication.GameClientConnection;
+
 public class CreateAccountPanel extends JPanel{
 	private JLabel error; 
 	private JLabel title; 
@@ -25,7 +27,7 @@ public class CreateAccountPanel extends JPanel{
 	private JButton submitButton; 
 	private JButton cancelButton; 
 	
-	public CreateAccountPanel(GameGUI gameGUI) {
+	public CreateAccountPanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
 		this.error = new JLabel(); 
 		this.error.setForeground(Color.red);
 		this.title = new JLabel("Create an account"); 
@@ -42,7 +44,7 @@ public class CreateAccountPanel extends JPanel{
 		this.cancelButton.setName("Cancel");
 		
 		
-		CreateAccountController controller = new CreateAccountController(this, gameGUI); 
+		CreateAccountController controller = new CreateAccountController(this, gameGUI, gameClientConnection); 
 		
 		//set up some basic behaviors for the buttons
 		this.submitButton.addActionListener(controller);
@@ -102,13 +104,14 @@ public class CreateAccountPanel extends JPanel{
 		buttonGrid.add(submitButtonHolder); 
 		buttonGrid.add(cancelButtonHolder); 
 		
-		
+		JPanel errorHolder = new JPanel(); 
+		errorHolder.add(this.error); 
 		
 		
 		//now we need to wrap them up in a box layout 
 		JPanel boxHolder = new JPanel(); 
 		boxHolder.setLayout(new BoxLayout(boxHolder, BoxLayout.PAGE_AXIS));
-		
+		boxHolder.add(errorHolder);
 		boxHolder.add(titleHolder); 
 		boxHolder.add(fieldGrid); 
 		boxHolder.add(buttonGrid); 

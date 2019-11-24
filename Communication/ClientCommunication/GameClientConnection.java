@@ -5,6 +5,16 @@ import java.io.Serializable;
 import java.util.List;
 
 import Communication.ClientServerMessage;
+import Communication.GameData;
+import Communication.GetMessagesInstance;
+import Communication.LeftGame;
+import Communication.LoginFailure;
+import Communication.LoginSuccess;
+import Communication.NewAccountFailure;
+import Communication.NewAccountSuccess;
+import Communication.PlayerLeftGame;
+import Communication.RequestGameRooms;
+import Communication.TestObject;
 import Communication.ServerCommunication.GameRoomData;
 import Communication.ServerCommunication.PlayerLoginData;
 import Communication.ServerCommunication.PlayerNewAccountData;
@@ -40,10 +50,25 @@ public class GameClientConnection extends AbstractClient {
 	 */
 	public GameClientConnection(String host, int port) {
 		super(host, port);
+		
 	}
 
-	
-	
+    @Override
+    protected void connectionEstablished() {
+    	// TODO Auto-generated method stub
+    	System.out.println("Connection opened");
+    }
+    
+    @Override
+    protected void connectionException(Exception exception) {
+    	// TODO Auto-generated method stub
+    	System.out.println(exception.getMessage());
+    }
+	@Override
+	protected void connectionClosed() {
+		// TODO Auto-generated method stub
+		System.out.println("connection closed");
+	}
 	
 	public GameController getGameController() {
 		return gameController;
@@ -97,54 +122,89 @@ public class GameClientConnection extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object object) {
+		System.out.println("Message received");
 		
-		if(object instanceof ClientServerMessage) {
-			ClientServerMessage message = (ClientServerMessage) object;
-			
-			if(message == ClientServerMessage.GAME_DATA) {
-				if(message.getData() instanceof Game) {
-					handleReceiveGameData((Game) message.getData());
-				}
-			}
-			
-			if(message == ClientServerMessage.LOGIN_FAILURE) {
-				handleReceiveLoginFailure(message);
-			}
-			
-			if(message == ClientServerMessage.LOGIN_SUCCESS) {
-				handleReceiveLoginSuccess();
-			}
-			
-			if(message == ClientServerMessage.NEW_ACCOUNT_FAILURE) {
-				handleReceiveNewAccountFailure(message);
-			}
-			
-			if(message == ClientServerMessage.NEW_ACCOUNT_SUCCESS) {
-				handleReceiveNewAccountSuccess();
-			}
-			
-			if(message == ClientServerMessage.LEFT_GAME) {
-				if(message.getData() instanceof PlayerData) { //Ensure the message was constructed correctly
-					
-					//TODO: Client1 receives message that Client2 left the game from server
-				}
-			}
-			
-			if(message == ClientServerMessage.REQUEST_GAME_ROOMS) {
-				if(message.getData() instanceof List<?>) {
-					List<?> data = (List<?>) message.getData();
-					if(data.size() >= 0 || data.get(0) instanceof GameRoomData) {
-						List<GameRoomData> gameRooms = (List<GameRoomData>) data;
-						
-						handleReceiveGameRooms((GameRoomData[]) gameRooms.toArray()); 
-					}
-				}
-			}
+		if (object instanceof LoginFailure) {
+			LoginFailure loginFailure = (LoginFailure) object; 
+			this.handleReceiveLoginFailure(loginFailure);
+		}
+		else if (object instanceof GameData) {
+			GameData gameData = (GameData) object;
+			this.handleReceiveGameData(gameData);
+		}
+		else if(object instanceof LoginSuccess) {
+			this.handleReceiveLoginSuccess();
+		}
+		else if(object instanceof NewAccountFailure) {
+			NewAccountFailure newAccountFailure = (NewAccountFailure) object; 
+			this.handleReceiveNewAccountFailure(newAccountFailure);
+		}
+		else if(object instanceof NewAccountSuccess) {
+			this.handleReceiveNewAccountSuccess();
+		}
+		else if(object instanceof LeftGame) {
+			//to do
+		}
+		else if(object instanceof RequestGameRooms) {
+			//
 		}
 		
+//		if(object instanceof ClientServerMessage) {
+//			ClientServerMessage clientServerMessage= (ClientServerMessage) object; 
+//			String message = clientServerMessage.getMessage(); 
+//			if(message.equals(GetMessagesInstance.GAME_DATA())) {
+//				if(clientServerMessage.getData() instanceof Game) {
+//					handleReceiveGameData((Game) clientServerMessage.getData());
+//				}
+//			}
+//			
+//			if(message.contentEquals(GetMessagesInstance.LOGIN_FAILURE())) {
+//				handleReceiveLoginFailure(clientServerMessage);
+//			}
+//			
+//			if(message.equals(GetMessagesInstance.LOGIN_SUCCESS())) {
+//				handleReceiveLoginSuccess();
+//			}
+//			
+//			if(message.equals(GetMessagesInstance.NEW_ACCOUNT_FAILURE())) {
+//				handleReceiveNewAccountFailure(clientServerMessage);
+//			}
+//			
+//			if(message.equals(GetMessagesInstance.NEW_ACCOUNT_SUCCESS())) {
+//				handleReceiveNewAccountSuccess();
+//			}
+//			
+//			if(message.equals(GetMessagesInstance.LEFT_GAME())) {
+//				if(clientServerMessage.getData() instanceof PlayerData) { //Ensure the message was constructed correctly
+//					
+//					//TODO: Client1 receives message that Client2 left the game from server
+//				}
+//			}
+			
+//			if(message.equals(GetMessagesInstance.REQUEST_GAME_ROOMS())) {
+//				if(clientServerMessage.getData() instanceof List<?>) {
+//					List<?> data = (List<?>) clientServerMessage.getData();
+//					if(data.size() >= 0 || data.get(0) instanceof GameRoomData) {
+//						List<GameRoomData> gameRooms = (List<GameRoomData>) data;
+//						
+//						handleReceiveGameRooms((GameRoomData[]) gameRooms.toArray()); 
+//					}
+//				}
+//			}
+		}
+		
+	
+	
+	public void testObjectSend() {
+		try {
+			this.sendToServer(new TestObject());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	private void handleReceiveGameData(Game game) {
+	private void handleReceiveGameData(GameData game) {
 		//TODO: Update board, join game?, etc.
 		
 	}
@@ -153,9 +213,9 @@ public class GameClientConnection extends AbstractClient {
 		loginController.loginSuccess();
 	}
 	
-	private void handleReceiveLoginFailure(ClientServerMessage message) {
-		if(message.getData() != null && message.getData() instanceof String) {
-			loginController.loginFailure((String) message.getData());
+	private void handleReceiveLoginFailure(LoginFailure loginFailure) {
+		if(loginFailure.getMessage() != null) {
+			loginController.loginFailure(loginFailure.getMessage());
 		} else {
 			loginController.loginFailure("Failed to login! Invalid information or the database is down!");
 		}
@@ -165,9 +225,10 @@ public class GameClientConnection extends AbstractClient {
 		createAccountController.createAccountSuccess();
 	}
 	
-	private void handleReceiveNewAccountFailure(ClientServerMessage message) {
-		if(message.getData() != null && message.getData() instanceof String) {
-			createAccountController.createAccountFailure((String) message.getData());
+	private void handleReceiveNewAccountFailure(NewAccountFailure newAccountFailure) {
+		System.out.println("Failure method reached");
+		if(newAccountFailure.getMessage() != null) {
+			createAccountController.createAccountFailure(newAccountFailure.getMessage());
 		} else {
 			createAccountController.createAccountFailure("Failed to login! Invalid information or the database is down!");
 		}
@@ -178,8 +239,7 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void sendGameForVerification(Game game) {
-		ClientServerMessage message = ClientServerMessage.GAME_DATA;
-		message.setData(game);
+		GameData gameData = new GameData(game); 
 		try {
 			this.sendToServer(game);
 		} catch (IOException e) {
@@ -188,28 +248,23 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void sendPlayerLoginData(PlayerLoginData data) {
-		ClientServerMessage message = ClientServerMessage.LOGIN;
-		message.setData(data);
 		try {
-			this.sendToServer(message);
+			this.sendToServer(data);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void sendPlayerNewAccountData(PlayerNewAccountData data) {
-		ClientServerMessage message = ClientServerMessage.NEW_ACCOUNT;
-		message.setData(data);
+		System.out.println("Sending from client");
 		try {
-			this.sendToServer(message);
+			this.sendToServer(data);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void sendNewGameRoom(GameRoomData gameRoom) {
-		ClientServerMessage message = ClientServerMessage.NEW_GAME_ROOM;
-		message.setData(gameRoom);
 		try {
 			this.sendToServer(gameRoom);
 		} catch (IOException e) {
@@ -218,18 +273,19 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void sendLeftGame(PlayerData playerData) {
-		ClientServerMessage message = ClientServerMessage.LEFT_GAME;
-		message.setData(playerData); // The LEFT_GAME message needs to know which player left the game, so the server knows to inform the
+		PlayerLeftGame playerLeftGame = new PlayerLeftGame(playerData); 
+		// The LEFT_GAME message needs to know which player left the game, so the server knows to inform the
 										//other player that they won
 		try {
-			this.sendToServer(message);
+			this.sendToServer(playerLeftGame);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void requestGameData() throws IOException {
-		ClientServerMessage message = ClientServerMessage.REQUEST_GAME_DATA;
+		ClientServerMessage message = new ClientServerMessage(); 
+		message.setMessageREQUEST_GAME_DATA();
 		try {
 			this.sendToServer(message);
 		} catch (IOException e) {
@@ -239,7 +295,8 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void requestGameRooms() throws IOException {
-		ClientServerMessage message = ClientServerMessage.REQUEST_GAME_ROOMS;
+		ClientServerMessage message = new ClientServerMessage(); 
+		message.setMessageREQUEST_GAME_ROOMS();
 		try {
 			this.sendToServer(message);
 		} catch (IOException e) {

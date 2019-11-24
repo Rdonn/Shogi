@@ -18,5 +18,11 @@ public class PlayerLoginData implements Serializable{
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	public String getUserName() {
+		return userName;
+	}
+	public String getPassword() {
+		return password;
+	}
 	
 }

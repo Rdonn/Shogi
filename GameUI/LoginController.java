@@ -7,15 +7,18 @@ import javax.swing.JButton;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import Communication.ClientCommunication.GameClientConnection;
 import Communication.ServerCommunication.PlayerLoginData;
 
 public class LoginController implements ActionListener{
 
 	LoginPanel loginPanel; 
 	GameGUI view; 
-	public LoginController(LoginPanel loginPanel, GameGUI view) {
+	GameClientConnection gameClientConnection; 
+	public LoginController(LoginPanel loginPanel, GameGUI view, GameClientConnection gameClientConnection) {
 		// TODO Auto-generated constructor stub
-		GameGUI.getClientConnection().setLoginController(this);
+		this.gameClientConnection = gameClientConnection; 
+		this.gameClientConnection.setLoginController(this);
 		this.loginPanel = loginPanel; 
 		this.view = view; 
 	}
@@ -27,18 +30,14 @@ public class LoginController implements ActionListener{
 			   //later logic can be added here... for the time being, we will rotate back to the initial panel so i dont have to restart for testing
 				String username = this.loginPanel.getUsernameField().getText(); 
 				String password = new String(this.loginPanel.getPasswordField().getPassword());
-				System.out.println("Made it here");
 				if (username.length() < 6 || password.length() < 6) {
 					this.setError("Both fields are, by default, required to be longer than 6 characters");
 					return; 
 				}
-				else {
-					System.out.println(String.format("username: %s\npassword: %s", username, password));
-				}
 				
 				//need to contact the communication object HERE
-				this.view.shuffleSelectCreateGameOrSelectGamePanel();
-				GameGUI.getClientConnection().sendPlayerLoginData(new PlayerLoginData(username, password));
+				
+				this.gameClientConnection.sendPlayerLoginData(new PlayerLoginData(username, password));
 			}
 			else if(actionButton.getName().equals("Cancel")) {
 				setError(" ");

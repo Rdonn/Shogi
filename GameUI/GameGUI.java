@@ -11,26 +11,26 @@ import Communication.ClientCommunication.GameClientConnection;
 import Game.PlayerData;
 
 public class GameGUI extends JFrame{
-	private static GameClientConnection clientConnection; 
+	private GameClientConnection clientConnection; 
 	private static PlayerData playerData; 
 	public GameGUI(String IP, int PORT) throws IOException {
 		// TODO Auto-generated constructor stub
 		
-		clientConnection = new GameClientConnection(IP, PORT); 
+		clientConnection = new GameClientConnection(); 
 		
 		//we need this to run... so going to throw error from this constructor if it doesn't work, exiting before GUI logic
-		//clientConnection.openConnection();
+		clientConnection.openConnection();
 		
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		//set up the card layout
 		this.getContentPane().setLayout(new CardLayout());
-		this.getContentPane().add("Create Account Panel",new CreateAccountPanel(this)); 
+		this.getContentPane().add("Create Account Panel",new CreateAccountPanel(this, clientConnection)); 
 		this.getContentPane().add("Game Panel",new GamePanel(this));
 		this.getContentPane().add("Initial Panel",new InitialPanel(this)); 
-		this.getContentPane().add("Login Panel",new LoginPanel(this)); 
-		this.getContentPane().add("Create Game Panel", new CreateGamePanel(this));
+		this.getContentPane().add("Login Panel",new LoginPanel(this, clientConnection)); 
+		this.getContentPane().add("Create Game Panel", new CreateGamePanel(this, clientConnection));
 		this.getContentPane().add("Select Game Panel", new SelectGamePanel(this)); 
 		this.getContentPane().add("Select Create Game Or Select Game Panel", new SelectCreateGameOrSelectGamePanel(this)); 
 		this.shuffleToInitial();
@@ -47,7 +47,7 @@ public class GameGUI extends JFrame{
 		return playerData;
 	}
 	
-	public static GameClientConnection getClientConnection() {
+	public GameClientConnection getClientConnection() {
 		return clientConnection; 
 	}
 	
