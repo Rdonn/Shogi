@@ -1,5 +1,7 @@
 package Communication.ServerCommunication;
 
-public class GameRoomData {
+import java.io.Serializable;
 
+public class GameRoomData implements Serializable{
+	
 }

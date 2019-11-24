@@ -1,8 +1,10 @@
 package Game;
 
+import java.io.Serializable;
+
 import GameUI.GameGUI;
 
-public class Game {
+public class Game implements Serializable {
 
 	private Board board; 
 	private PlayerData playerOne; 
