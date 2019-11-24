@@ -1,3 +1,4 @@
 #!/bin/bash
 
-java -cp . GameUI.GameGUI 1025 456546546
+java -cp .:ocsf.jar GameUI.GameGUI localhost 12345
+PAUSE

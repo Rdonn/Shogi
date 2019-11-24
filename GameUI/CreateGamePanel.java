@@ -10,13 +10,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import Communication.ClientCommunication.GameClientConnection;
+
 public class CreateGamePanel extends JPanel{
 	private JLabel title; 
 	private JTextField gameNameField;
 	private JLabel gameNameTitle; 
 	private JButton submit; 
 	private JButton cancel; 
-	public CreateGamePanel(GameGUI gameGUI) {
+	public CreateGamePanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
 		this.title = new JLabel("Create game"); 
 		this.gameNameField = new JTextField(10);
 		this.gameNameTitle = new JLabel("Game Name"); 
@@ -26,7 +28,7 @@ public class CreateGamePanel extends JPanel{
 		this.cancel.setName("Cancel");
 		
 		//set the controller 
-		CreateGameController createGameController = new CreateGameController(this, gameGUI);
+		CreateGameController createGameController = new CreateGameController(this, gameGUI, gameClientConnection);
 		
 		this.submit.addActionListener(createGameController);
 		this.cancel.addActionListener(createGameController);

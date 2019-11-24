@@ -14,11 +14,15 @@ public class SelectGamePanel extends JPanel{
 	JLabel error; 
 	JLabel title; 
 	JComboBox selectPlayerBox; 
+	JButton cancelButton; 
 	public SelectGamePanel(GameGUI gameGUI) {
 		PlayerData testData = new PlayerData("xxxBestPlayerxxx", "00000"); 
 		String[] testDataStrings = {testData.getPlayerName()}; 
 		this.selectPlayerBox = new JComboBox<String>(testDataStrings); 
 		this.selectGameButton = new JButton("Select Game"); 
+		this.selectGameButton.setName("Select Game");
+		this.cancelButton = new JButton("Cancel");
+		this.cancelButton.setName("Cancel");
 		this.error = new JLabel();
 		this.error.setForeground(Color.red);
 		this.title = new JLabel("Select A Game To Begin Playing with a player"); 
@@ -27,11 +31,23 @@ public class SelectGamePanel extends JPanel{
 		this.add(this.error); 
 		this.add(this.title); 
 		
-		JPanel holder = new JPanel(new GridLayout(1, 2));
-		holder.add(this.selectPlayerBox); 
-		holder.add(this.selectGameButton); 
 		
-		this.add(holder); 
+		JPanel selectPlayerBoxHolder = new JPanel(); 
+		selectPlayerBoxHolder.add(this.selectPlayerBox); 
+		
+		JPanel buttonHolder = new JPanel(); 
+		buttonHolder.add(this.selectGameButton); 
+		buttonHolder.add(this.cancelButton); 
+		
+		
+		
+		//set up the button functionality 
+		this.selectGameButton.addActionListener(new SelectGameController(this, gameGUI));
+		this.cancelButton.addActionListener(new SelectGameController(this, gameGUI));
+		
+		
+		this.add(buttonHolder);
+		this.add(selectPlayerBoxHolder);
 		
 		
 	}

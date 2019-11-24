@@ -10,6 +10,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import Communication.ClientCommunication.GameClientConnection;
+
 public class LoginPanel extends JPanel{
 	private JLabel errorLabel; 
 	private JLabel title; 
@@ -21,7 +23,7 @@ public class LoginPanel extends JPanel{
 	private JButton cancelButton; 
 	
 	
-	public LoginPanel(GameGUI gameGUI) {
+	public LoginPanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
 		this.errorLabel = new JLabel(" "); 
 		this.errorLabel.setForeground(Color.RED);
 		this.title = new JLabel("Enter your login information");
@@ -33,7 +35,7 @@ public class LoginPanel extends JPanel{
 		this.cancelButton = new JButton("Cancel"); 
 		
 		//set up the buttons
-		LoginController loginController = new LoginController(this, gameGUI); 
+		LoginController loginController = new LoginController(this, gameGUI, gameClientConnection); 
 		this.submitButton.setName("Submit");
 		this.cancelButton.setName("Cancel");
 		this.submitButton.addActionListener(loginController);

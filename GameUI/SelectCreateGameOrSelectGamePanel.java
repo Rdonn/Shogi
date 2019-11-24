@@ -1,5 +1,6 @@
 package GameUI;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,9 +16,17 @@ public class SelectCreateGameOrSelectGamePanel extends JPanel{
 		this.createGameButton = new JButton("Create Game");
 		this.selectGameButton.setName("Select Game");
 		this.createGameButton.setName("Create Game");
+		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 		this.add(this.title); 
-		this.add(this.selectGameButton); 
-		this.add(this.createGameButton); 
+		JPanel buttonHolder = new JPanel(); 
+		buttonHolder.add(this.selectGameButton); 
+		buttonHolder.add(this.createGameButton); 
+		
+		SelectCreateGameOrSelectGameController selectCreateGameOrSelectGameController = new SelectCreateGameOrSelectGameController(this, gameGUI); 
+		this.selectGameButton.addActionListener(selectCreateGameOrSelectGameController);
+		this.createGameButton.addActionListener(selectCreateGameOrSelectGameController);
+		
+		this.add(buttonHolder);
 		
 		
 	}

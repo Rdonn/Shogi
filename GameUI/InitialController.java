@@ -10,6 +10,7 @@ public class InitialController implements ActionListener{
 	private GameGUI view; 
 	public InitialController(InitialPanel initialPanel, GameGUI gameGUI) {
 		// TODO Auto-generated constructor stub
+		
 		this.initialPanel = initialPanel; 
 		this.view = gameGUI; 
 	}
