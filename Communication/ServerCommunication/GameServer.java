@@ -4,25 +4,53 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.JLabel;
-
 import Communication.ClientServerMessage;
+import Communication.LeftGame;
 import Communication.LoginFailure;
 import Communication.LoginSuccess;
+import Communication.LogoutOperationForClose;
 import Communication.NewAccountFailure;
 import Communication.NewAccountSuccess;
+import Communication.NewGameRoom;
+import Communication.NewGameRoomFailure;
+import Communication.NewGameRoomSuccess;
+import Communication.RequestGameRooms;
+import Communication.SelectedGameRoom;
 import DatabaseConnection.Database;
 import DatabaseConnection.User;
+import Game.Game;
+import Game.PlayerData;
+import GameLogic.GameLogic;
 import ServerGUI.ServerGUI;
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 
 public class GameServer extends AbstractServer {
-
+	//I'm storing as much state as I can to make this as easy as possible. 
+	
+	//game room name ----> GameRoomData  (could just hash the game room... but I don't want to do that)
+	private HashMap<String, GameRoomData> gameRoomNameToData; 
+	
+	//gameRoomName --->>> username
+	private HashMap<String, String> gameNameToUsername; 
+	private HashMap<String, GameRoomData> gameMap;
+	private HashMap<String, String> playerMap; 
+	//username --> connectionReference
+	private HashMap<String, ConnectionToClient> usernameToConnection; 
+	private Set<String> loggedInPlayers;
+	private Set<String> gameRoomNamesInUse;
 	private ServerGUI serverGUI; 
 	private Database database; 
 	public GameServer() {
+		
 		super(8300);
 		try {
 			//create the database. We WILL BE USING ONE STATIC DB.PROPERTIES IN THIS DATABASE IMPLEMENTATION
@@ -35,6 +63,12 @@ public class GameServer extends AbstractServer {
 			// TODO Auto-generated catch block
 			System.out.println(String.format("Error in creating the database: %s", e.getMessage()));
 		} 
+		this.gameMap = new HashMap<String, GameRoomData>();
+		this.playerMap = new HashMap<String, String>(); 
+		this.loggedInPlayers = new HashSet<String>(); 
+		this.gameRoomNamesInUse = new HashSet<String>(); 
+		this.gameRoomNameToData = new HashMap<String, GameRoomData>(); 
+		this.gameNameToUsername = new HashMap<String, String>(); 
 	}
 
 	public GameServer(int port) {
@@ -43,17 +77,19 @@ public class GameServer extends AbstractServer {
 
 	@Override
 	protected void clientConnected(ConnectionToClient client) {
+		this.serverGUI.getLog().append(String.format("Client %d connected\n", client.getId()));
 	}
 	@Override
 	protected synchronized void clientDisconnected(ConnectionToClient client) {
+		this.serverGUI.getLog().append(String.format("Client %d disconnected\n", client.getId()));
 	}
 	@Override
 	protected synchronized void clientException(ConnectionToClient client, Throwable exception) {
 		// TODO Auto-generated method stub
-		System.out.println("Exception");
+		this.serverGUI.getLog().append(String.format("Client %d: ", client.getId()));
 		exception.printStackTrace();
-		System.out.println(exception.getMessage());
-		System.out.println(exception.getCause());
+		exception.getCause().printStackTrace();
+		
 	}
 	@Override
 	protected void serverStarted() {
@@ -85,19 +121,25 @@ public class GameServer extends AbstractServer {
 	@Override
 	protected void handleMessageFromClient(Object object, ConnectionToClient connection) {
 
-		this.serverGUI.getLog().append("Message received on server\n");
-		
-		
 		if (object instanceof PlayerLoginData) {
 			try {
 				PlayerLoginData playerLoginData = (PlayerLoginData) object; 
-				if (this.database.verifyUserExistsForLogin(new User(playerLoginData.getUserName(), playerLoginData.getPassword()))) {
-					connection.sendToClient(new LoginSuccess());
+				if (   !this.loggedInPlayers.contains(playerLoginData.getUserName()) &&
+						this.database.verifyUserExistsForLogin(new User(playerLoginData.getUserName(), playerLoginData.getPassword()))) {
+					connection.sendToClient(new LoginSuccess(new PlayerData(playerLoginData.getUserName(), connection.getId())));
+					
+					this.playerMap.put(Long.toString(connection.getId()), playerLoginData.getUserName()); 
+					this.loggedInPlayers.add(playerLoginData.getUserName()); 
 				}
 				else {
+					if (this.loggedInPlayers.contains(playerLoginData.getUserName())) {
+						connection.sendToClient(new LoginFailure("Failure to login, user is already logged in"));
+						return; 
+					}
 					connection.sendToClient(new LoginFailure("Failure to login, Invalid Credentials"));
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println(String.format("Error in login logic and server client communication: %s", e.getMessage()));
 			}
 		}
@@ -107,16 +149,173 @@ public class GameServer extends AbstractServer {
 			try {
 				PlayerNewAccountData playerNewAccountData = (PlayerNewAccountData) object;
 				if (this.database.verifyUserExistsForCreateUser(new User(playerNewAccountData.getUsername(), playerNewAccountData.getPassword()))) {
-					System.out.println("Success");
 					connection.sendToClient(new NewAccountSuccess());
 				}
 				else {
-					System.out.println("Failure");
 					connection.sendToClient(new NewAccountFailure("Failure to create new account, username in use"));
 				}
 			} catch (Exception e) {
 				System.out.println(String.format("Error in create account logic and server client communication: %s", e.getMessage())); 
 			}
+		}
+		
+		else if (object instanceof NewGameRoom) {
+			NewGameRoom newGameRoom = (NewGameRoom) object; 
+			String username = this.playerMap.get(Long.toString(connection.getId()));
+			GameRoomData gameRoomData = new GameRoomData(newGameRoom.getName());
+			
+			//check and see if the game room name is in use
+			if (this.gameRoomNamesInUse.contains(gameRoomData.getName())) {
+				NewGameRoomFailure newGameRoomFailure = new NewGameRoomFailure("Name already in use"); 
+				try {
+					connection.sendToClient(newGameRoomFailure);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			this.gameRoomNameToData.put(gameRoomData.getName(), gameRoomData); 
+			this.gameMap.put(username, gameRoomData);
+			this.gameNameToUsername.put(gameRoomData.getName(), username); 
+			try {
+				connection.sendToClient(new NewGameRoomSuccess());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+		else if (object instanceof RequestGameRooms) {
+			try {
+				connection.sendToClient(this.handleRequestGameRooms());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if (object instanceof SelectedGameRoom) {
+			System.out.println("Selecting game room selected");
+			
+			//the user has selected a game room
+			SelectedGameRoom selectedGameRoom = (SelectedGameRoom) object;
+			
+			//don't know what I need yet, so I will extracting everything
+			String gameRoomName = selectedGameRoom.getGameRoomData().getName(); 
+			String usernameForJoiningPlayer = this.playerMap.get(Long.toString(connection.getId()));
+			System.out.println(String.format("Username:%s | ID: %d", usernameForJoiningPlayer, connection.getId()));
+			//need to get the username of the player that is waiting in the game room
+			String usernameForWaitingPlayer = this.gameNameToUsername.get(gameRoomName); 
+			this.handleSelectedGameRequest(gameRoomName, usernameForJoiningPlayer, usernameForWaitingPlayer); 
+			
+		}
+		
+		else if(object instanceof LogoutOperationForClose) {
+			System.out.println("Logout operation");
+			LogoutOperationForClose logoutOperation = (LogoutOperationForClose) object; 
+			PlayerData playerData = logoutOperation.getPlayerData(); 
+			try {
+				connection.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			this.handleLogoutOperationForClose(playerData);
+			
+			
+		}
+		
+		else if(object instanceof Game) {
+			//coordinate games
+			//get the user that send it 
+			String justWentUser = this.playerMap.get(Long.toString(connection.getId())); 
+			Game refGame = this.usernameToGameroom.get(justWentUser); 
+			String opponentUser = (refGame.getPlayerOne().equals(justWentUser)) ? refGame.getPlayerTwo() : refGame.getPlayerOne(); 
+			Game defactoGame = (Game) object;
+			
+			
+			boolean acceptable; 
+			if (defactoGame.isMoving()) {
+				acceptable = GameLogic.handleMove(defactoGame); 
+			}
+			else if(defactoGame.isPromoting()) {
+				acceptable = GameLogic.handlePromotion(defactoGame); 
+			}
+			else {
+				acceptable = true; 
+			}
+			
+			//find the connection id's (reusing code from earlier when the references were unknown)
+			ConnectionToClient justWentConnection = null; 
+			ConnectionToClient opponentConnection = null; 
+			for (Thread thread : this.getClientConnections()) {
+				System.out.println(thread.getId());
+				if(this.playerMap.get(Long.toString(thread.getId())).equals(justWentUser)) {
+					justWentConnection = (ConnectionToClient) thread; 
+				}
+				else if(this.playerMap.get(Long.toString(thread.getId())).equals(opponentUser)){
+					opponentConnection = (ConnectionToClient) thread; 
+				}
+				
+				if (justWentConnection != null && opponentConnection != null) {
+					break; 
+				}
+			}
+			
+			//if the move was acceptable, we just apply the move and send it back to the users
+			if (acceptable) {
+				GameLogic.applyMove(defactoGame);//need to figure out the context from the boolean flags
+				
+				try {
+					defactoGame.setYourTurn(false);
+					justWentConnection.sendToClient(defactoGame);
+					defactoGame.setYourTurn(true);
+					opponentConnection.sendToClient(defactoGame);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				//now update the game reference for both the hashes
+				this.usernameToGameroom.put(opponentUser, defactoGame); 
+				this.usernameToGameroom.put(justWentUser, defactoGame); 
+			} 
+			//if the move was unacceptable, just redo!!!
+			else {
+				try {
+					refGame.setYourTurn(true); 
+					justWentConnection.sendToClient(refGame);
+					refGame.setYourTurn(false);
+					justWentConnection.sendToClient(refGame);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+			
+		}
+		else if(object instanceof LeftGame) {
+			System.out.println("Left game received");
+			//get the person who left the game
+			LeftGame leftGame = (LeftGame) object; 
+			LeftGame response = new LeftGame(); 
+			String userThatSentRequest = this.playerMap.get(Long.toString(connection.getId())); 
+			response.setMessage(String.format("User: %s has left the game. YOU WIN!", userThatSentRequest));
+			//find out who else was in the damn game...
+			Game refGame = this.usernameToGameroom.get(userThatSentRequest); 
+			String userToRepondTo = refGame.getPlayerOne().equals(userThatSentRequest) ? refGame.getPlayerTwo() : refGame.getPlayerOne();
+			//now that we have the user to respond to, we need to get their connection reference
+			for (Thread connectionToClient : this.getClientConnections()) {
+				if (this.playerMap.get(Long.toString(connectionToClient.getId())).contentEquals(userToRepondTo)) {
+					ConnectionToClient connectionToClient2 = (ConnectionToClient) connectionToClient; 
+					try {
+						connectionToClient2.sendToClient(response);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return; 
+				}
+			}
+			
 		}
 		
 //		if (object instanceof ClientServerMessage) {
@@ -185,5 +384,80 @@ public class GameServer extends AbstractServer {
 //		}
 //
 //	}
+	}
+	//now... how to organize this
+	//players should be put in the same room, which is identifiable both ways from username...
+	//... so, how should this be done...
+	//single hash should work... as long as game room has both players and 2 username hashes point to same game room. 
+	
+	//username --> gameroom
+	
+	private HashMap<String, Game> usernameToGameroom = new HashMap<String, Game>(); 
+	public void handleSelectedGameRequest(String gameRoomName, String usernameForJoiningPlayer, String usernameForWaitingPlayer) {
+		//we are creating a new game with a reference to both players
+		Game game = new Game(); 
+		game.setPlayerOne(usernameForJoiningPlayer);
+		game.setPlayerTwo(usernameForWaitingPlayer);
+		game.setPlayerOneAlias("up");
+		game.setPlayerTwoAlias("down");
+		//need to get the ID for the players that we can send the game to them......
+		//best way to do this....
+		//probably store the connection reference initially, but then we would need to mess with the unreliable hooks of the framework
+		//to kill the threads reference upon disconnection. I dont trust it. 
+		
+		//I feel like there are already plenty of hashes, so no more. 
+		
+		this.usernameToGameroom.put(game.getPlayerOne(), game); 
+		this.usernameToGameroom.put(game.getPlayerTwo(), game); 
+		
+		//now to find the connection, need to make sure each player has a different turn boolean. 
+		ConnectionToClient playerOneReference = null; 
+		ConnectionToClient playerTwoReference = null; 
+		
+		for (Thread thread : this.getClientConnections()) {
+			System.out.println(thread.getId());
+			if(this.playerMap.get(Long.toString(thread.getId())).equals(game.getPlayerOne())) {
+				playerOneReference = (ConnectionToClient) thread; 
+			}
+			else if(this.playerMap.get(Long.toString(thread.getId())).equals(game.getPlayerTwo())){
+				playerTwoReference = (ConnectionToClient) thread; 
+			}
+			
+			if (playerOneReference != null && playerTwoReference != null) {
+				break; 
+			}
+		}
+		
+		try {
+			game.setInitialResponse(true);
+			game.setYourTurn(true);
+			playerOneReference.sendToClient(game);
+			game.setYourTurn(false);
+			playerTwoReference.sendToClient(game);
+		} catch (IOException e) {
+			System.out.println("Problem creating the initial game");
+		}
+		}
+	
+	public ArrayList<GameRoomData> handleRequestGameRooms() {
+		ArrayList<GameRoomData> gameRoomDatas = new ArrayList<GameRoomData>(); 
+		for (String gameRoomDataKey : this.gameMap.keySet()) {
+			GameRoomData gameRoomData = this.gameMap.get(gameRoomDataKey); 
+			gameRoomDatas.add(gameRoomData);
+		}
+		return gameRoomDatas; 
+	}
+	//will need to expanded upon
+	public void handleLogoutOperationForClose(PlayerData playerData) {
+		this.loggedInPlayers.remove(playerData.getPlayerName());
+		
+	}
+	
+	//debugging stuff
+	public void printGameRooms() {
+		Iterator<String> keys = this.gameMap.keySet().iterator();
+		while(keys.hasNext()) {
+			System.out.println(this.gameMap.get(keys.next()).getName());
+		}
 	}
 }

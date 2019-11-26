@@ -13,16 +13,17 @@ public class SelectGamePanel extends JPanel{
 	JButton selectGameButton; 
 	JLabel error; 
 	JLabel title; 
-	JComboBox selectPlayerBox; 
+	JComboBox<String> selectGameBox; 
 	JButton cancelButton; 
+	JButton refreshButton; 
 	public SelectGamePanel(GameGUI gameGUI) {
-		PlayerData testData = new PlayerData("xxxBestPlayerxxx", "00000"); 
-		String[] testDataStrings = {testData.getPlayerName()}; 
-		this.selectPlayerBox = new JComboBox<String>(testDataStrings); 
+		this.selectGameBox = new JComboBox<String>(); 
 		this.selectGameButton = new JButton("Select Game"); 
 		this.selectGameButton.setName("Select Game");
 		this.cancelButton = new JButton("Cancel");
 		this.cancelButton.setName("Cancel");
+		this.refreshButton= new JButton("Refresh"); 
+		this.refreshButton.setName("Refresh");
 		this.error = new JLabel();
 		this.error.setForeground(Color.red);
 		this.title = new JLabel("Select A Game To Begin Playing with a player"); 
@@ -33,22 +34,33 @@ public class SelectGamePanel extends JPanel{
 		
 		
 		JPanel selectPlayerBoxHolder = new JPanel(); 
-		selectPlayerBoxHolder.add(this.selectPlayerBox); 
+		selectPlayerBoxHolder.add(this.selectGameBox); 
 		
 		JPanel buttonHolder = new JPanel(); 
 		buttonHolder.add(this.selectGameButton); 
 		buttonHolder.add(this.cancelButton); 
+		buttonHolder.add(this.refreshButton); 
 		
 		
+		SelectGameController selectGamePanel = new SelectGameController(this, gameGUI); 
 		
 		//set up the button functionality 
-		this.selectGameButton.addActionListener(new SelectGameController(this, gameGUI));
-		this.cancelButton.addActionListener(new SelectGameController(this, gameGUI));
-		
+		this.selectGameButton.addActionListener(selectGamePanel);
+		this.cancelButton.addActionListener(selectGamePanel);
+		this.refreshButton.addActionListener(selectGamePanel);
 		
 		this.add(buttonHolder);
 		this.add(selectPlayerBoxHolder);
 		
 		
+	}
+	public JLabel getError() {
+		return error;
+	}
+	public JComboBox<String> getSelectGameBox() {
+		return selectGameBox;
+	}
+	public JLabel getTitle() {
+		return title;
 	}
 }

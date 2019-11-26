@@ -12,11 +12,9 @@ public class CreateAccountController implements ActionListener{
 
 	private CreateAccountPanel createAccountPanelReference; 
 	private GameGUI view; 
-	private GameClientConnection gameClientConnection; 
-	public CreateAccountController(CreateAccountPanel createAccountPanel, GameGUI view, GameClientConnection gameClientConnection) {
+	public CreateAccountController(CreateAccountPanel createAccountPanel, GameGUI view) {
 		// TODO Auto-generated constructor stub
-		this.gameClientConnection = gameClientConnection;
-		gameClientConnection.setCreateAccountController(this);
+		GameGUI.getClientConnection().setCreateAccountController(this);
 		this.view = view; 
 		this.createAccountPanelReference = createAccountPanel; 
 	}
@@ -52,7 +50,7 @@ public class CreateAccountController implements ActionListener{
 				
 				//communication object
 				System.out.println("Sending");
-				this.gameClientConnection.sendPlayerNewAccountData(new PlayerNewAccountData(username, passwordOne));
+				GameGUI.getClientConnection().sendPlayerNewAccountData(new PlayerNewAccountData(username, passwordOne));
 			}
 			else if (actionButton.getName().contentEquals("Cancel")) {
 				this.view.shuffleToInitial();
@@ -66,6 +64,10 @@ public class CreateAccountController implements ActionListener{
 	}
 	
 	public void createAccountSuccess() {
+		//clear the fields
+		this.createAccountPanelReference.getPasswordField().setText("");
+		this.createAccountPanelReference.getReenterPasswordField().setText("");
+		this.createAccountPanelReference.getUsernameField().setText("");
 		this.view.shuffleToLogin();
 	}
 	

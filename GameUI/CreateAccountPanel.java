@@ -27,7 +27,7 @@ public class CreateAccountPanel extends JPanel{
 	private JButton submitButton; 
 	private JButton cancelButton; 
 	
-	public CreateAccountPanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
+	public CreateAccountPanel(GameGUI gameGUI) {
 		this.error = new JLabel(); 
 		this.error.setForeground(Color.red);
 		this.title = new JLabel("Create an account"); 
@@ -44,7 +44,7 @@ public class CreateAccountPanel extends JPanel{
 		this.cancelButton.setName("Cancel");
 		
 		
-		CreateAccountController controller = new CreateAccountController(this, gameGUI, gameClientConnection); 
+		CreateAccountController controller = new CreateAccountController(this, gameGUI); 
 		
 		//set up some basic behaviors for the buttons
 		this.submitButton.addActionListener(controller);

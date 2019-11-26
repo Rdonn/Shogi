@@ -14,11 +14,9 @@ public class LoginController implements ActionListener{
 
 	LoginPanel loginPanel; 
 	GameGUI view; 
-	GameClientConnection gameClientConnection; 
-	public LoginController(LoginPanel loginPanel, GameGUI view, GameClientConnection gameClientConnection) {
+	public LoginController(LoginPanel loginPanel, GameGUI view) {
 		// TODO Auto-generated constructor stub
-		this.gameClientConnection = gameClientConnection; 
-		this.gameClientConnection.setLoginController(this);
+		GameGUI.getClientConnection().setLoginController(this);
 		this.loginPanel = loginPanel; 
 		this.view = view; 
 	}
@@ -36,8 +34,7 @@ public class LoginController implements ActionListener{
 				}
 				
 				//need to contact the communication object HERE
-				
-				this.gameClientConnection.sendPlayerLoginData(new PlayerLoginData(username, password));
+				GameGUI.getClientConnection().sendPlayerLoginData(new PlayerLoginData(username, password));
 			}
 			else if(actionButton.getName().equals("Cancel")) {
 				setError(" ");

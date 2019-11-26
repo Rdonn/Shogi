@@ -2,16 +2,17 @@ package Communication;
 
 import java.io.Serializable;
 
-public class LeftGame implements Serializable{
+public class NewGameRoomFailure implements Serializable {
+
 	private String message; 
-	public LeftGame() {
+	public NewGameRoomFailure(String message) {
 		// TODO Auto-generated constructor stub
 	}
+	
 	public void setMessage(String message) {
 		this.message = message;
 	}
 	public String getMessage() {
 		return message;
 	}
-	
 }

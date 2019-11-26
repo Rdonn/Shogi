@@ -1,7 +1,8 @@
 package Game;
 
+import java.io.Serializable;
 
-public class PieceFactory {
+public class PieceFactory implements Serializable{
 
 	// defining a moveset
 

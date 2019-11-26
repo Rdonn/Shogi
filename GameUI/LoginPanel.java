@@ -23,7 +23,7 @@ public class LoginPanel extends JPanel{
 	private JButton cancelButton; 
 	
 	
-	public LoginPanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
+	public LoginPanel(GameGUI gameGUI) {
 		this.errorLabel = new JLabel(" "); 
 		this.errorLabel.setForeground(Color.RED);
 		this.title = new JLabel("Enter your login information");
@@ -35,7 +35,7 @@ public class LoginPanel extends JPanel{
 		this.cancelButton = new JButton("Cancel"); 
 		
 		//set up the buttons
-		LoginController loginController = new LoginController(this, gameGUI, gameClientConnection); 
+		LoginController loginController = new LoginController(this, gameGUI); 
 		this.submitButton.setName("Submit");
 		this.cancelButton.setName("Cancel");
 		this.submitButton.addActionListener(loginController);
