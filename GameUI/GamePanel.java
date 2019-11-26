@@ -24,6 +24,7 @@ public class GamePanel extends JPanel{
 	JButton takeBackTurn; 
 	JButton forfeit; 
 	JLabel errorTitle; 
+	JButton promoteButton; 
 	private JLabel title; 
 	public GamePanel(GameGUI gameGUI) {
 		try {
@@ -34,7 +35,7 @@ public class GamePanel extends JPanel{
 		} 
 		this.setPreferredSize(new Dimension(700,550));
 		JPanel board = new JPanel(new GridLayout(9,9)); 
-		GameController controller = new GameController(this); 
+		GameController controller = new GameController(this, gameGUI); 
 		board.setPreferredSize(new Dimension(500,500));
 		buttonMap = new HashMap<String, PieceButton>(); 
 		for(int i = 0; i < 9; i++) {
@@ -56,7 +57,7 @@ public class GamePanel extends JPanel{
 		//now set up the other shit
 		//NEED TO FIGURE OUT HOW WE ARE GOING TO PASS AROUND PLAYER DATA
 		
-		this.title = new JLabel(String.format("%s vs %s", "XXxshogi_monsterxXX", "69Japan_man420"));
+		this.title = new JLabel(" ");
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 		
@@ -66,30 +67,33 @@ public class GamePanel extends JPanel{
 	   this.takeTurn = new JButton("Take Turn"); 
 	   this.takeBackTurn = new JButton("Take Back Turn"); 
 	   this.forfeit = new JButton("Forfeit");
-	   
+	   this.promoteButton = new JButton("Promote"); 
+	   this.promoteButton.addActionListener(controller);
 	   this.takeTurn.addActionListener(controller);
 	   this.takeBackTurn.addActionListener(controller);
 	   this.forfeit.addActionListener(controller);
 	   
+	   this.promoteButton.setName("Promote");
 	   this.takeTurn.setName("Take Turn");
 	   this.takeBackTurn.setName("Take Back Turn");
 	   this.forfeit.setName("Forfeit");
 	   
 	   
-	   JPanel holders[] = new JPanel[3]; 
+	   JPanel holders[] = new JPanel[4]; 
 	   for (int i = 0; i < holders.length; i++) {
 		holders[i] = new JPanel(); 
 		}
 	   holders[0].add(this.takeTurn); 
-	   holders[1].add(this.takeBackTurn); 
-	   holders[2].add(this.forfeit);
+	   holders[2].add(this.takeBackTurn); 
+	   holders[3].add(this.forfeit);
+	   holders[1].add(this.promoteButton); 
 	   
 	   JPanel mainPanel = new JPanel(new FlowLayout());
 	   
 	   //need to add an error title
 	   this.errorTitle = new JLabel(); 
 	   this.errorTitle.setForeground(Color.RED);
-	   JPanel buttonPanel = new JPanel(new GridLayout(4,1)); 
+	   JPanel buttonPanel = new JPanel(new GridLayout(5,1)); 
 	   buttonPanel.add(this.errorTitle); 
 	   for (JPanel jPanel : holders) {
 		buttonPanel.add(jPanel); }
@@ -103,6 +107,21 @@ public class GamePanel extends JPanel{
 		
 		
 		
+	}
+	public JButton getPromoteButton() {
+		return promoteButton;
+	}
+	public JLabel getTitle() {
+		return title;
+	}
+	public JButton getForfeit() {
+		return forfeit;
+	}
+	public JButton getTakeBackTurn() {
+		return takeBackTurn;
+	}
+	public JButton getTakeTurn() {
+		return takeTurn;
 	}
 	
 	public void setError(String error) {

@@ -2,6 +2,7 @@ package Communication.ClientCommunication;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import Communication.ClientServerMessage;
@@ -10,10 +11,16 @@ import Communication.GetMessagesInstance;
 import Communication.LeftGame;
 import Communication.LoginFailure;
 import Communication.LoginSuccess;
+import Communication.LogoutOperationForClose;
+import Communication.LogoutOperationForClose;
 import Communication.NewAccountFailure;
 import Communication.NewAccountSuccess;
+import Communication.NewGameRoom;
+import Communication.NewGameRoomFailure;
+import Communication.NewGameRoomSuccess;
 import Communication.PlayerLeftGame;
 import Communication.RequestGameRooms;
+import Communication.SelectedGameRoom;
 import Communication.TestObject;
 import Communication.ServerCommunication.GameRoomData;
 import Communication.ServerCommunication.PlayerLoginData;
@@ -23,6 +30,7 @@ import Game.PlayerData;
 import GameUI.CreateAccountController;
 import GameUI.CreateGameController;
 import GameUI.GameController;
+import GameUI.GameGUI;
 import GameUI.LoginController;
 import GameUI.SelectGameController;
 import ocsf.client.AbstractClient;
@@ -122,9 +130,9 @@ public class GameClientConnection extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object object) {
-		System.out.println("Message received");
 		
 		if (object instanceof LoginFailure) {
+			System.out.println("Login failure received");
 			LoginFailure loginFailure = (LoginFailure) object; 
 			this.handleReceiveLoginFailure(loginFailure);
 		}
@@ -133,7 +141,8 @@ public class GameClientConnection extends AbstractClient {
 			this.handleReceiveGameData(gameData);
 		}
 		else if(object instanceof LoginSuccess) {
-			this.handleReceiveLoginSuccess();
+			LoginSuccess loginSuccess = (LoginSuccess) object; 
+			this.handleReceiveLoginSuccess(loginSuccess);
 		}
 		else if(object instanceof NewAccountFailure) {
 			NewAccountFailure newAccountFailure = (NewAccountFailure) object; 
@@ -142,12 +151,49 @@ public class GameClientConnection extends AbstractClient {
 		else if(object instanceof NewAccountSuccess) {
 			this.handleReceiveNewAccountSuccess();
 		}
+		else if(object instanceof NewGameRoomSuccess) {
+			this.handleReceiveNewGameRoomSuccess();
+		}
+		else if(object instanceof NewGameRoomFailure) {
+			NewGameRoomFailure newGameRoomFailure = (NewGameRoomFailure) object; 
+			this.handleReceiveNewGameRoomFailure(newGameRoomFailure);
+		}
 		else if(object instanceof LeftGame) {
-			//to do
+			System.out.println("left game received by client");
+			LeftGame leftGame = (LeftGame) object; 
+			System.out.println(leftGame.getMessage());
+			this.gameController.setTitle(leftGame.getMessage());
+			this.gameController.otherUserForfeiter();
 		}
-		else if(object instanceof RequestGameRooms) {
-			//
+		else if(object instanceof ArrayList<?>) {
+			ArrayList<?> arrayList = (ArrayList<?>) object; 
+			if (arrayList.size() > 0 && arrayList.get(0) instanceof GameRoomData) {
+				System.out.println("Requested game room data successfully");
+				ArrayList<GameRoomData> gameRoomDatas = (ArrayList<GameRoomData>) arrayList;
+				this.handleReceiveGameRooms(gameRoomDatas);
+				
+			}
+			else {
+				//debuggin section. can be removed
+			}
 		}
+		else if(object instanceof Game) {
+			System.out.println("Game received");
+			Game game = (Game) object; 
+			if(game.isYourTurn()) {
+				this.gameController.enable(); 
+			}
+			else {
+				this.gameController.disable();
+			}
+			this.gameController.setGame(game);
+			if(game.isInitialResponse()) {
+				
+				this.gameController.setTitle(game.getPlayerOne(), game.getPlayerTwo());
+			}
+			
+		}
+		
 		
 //		if(object instanceof ClientServerMessage) {
 //			ClientServerMessage clientServerMessage= (ClientServerMessage) object; 
@@ -209,7 +255,9 @@ public class GameClientConnection extends AbstractClient {
 		
 	}
 	
-	private void handleReceiveLoginSuccess() {
+	private void handleReceiveLoginSuccess(LoginSuccess loginSuccess) {
+		//setting static player data so it is retrievable at all times
+		GameGUI.setPlayerData(loginSuccess.getPlayerData());
 		loginController.loginSuccess();
 	}
 	
@@ -234,12 +282,19 @@ public class GameClientConnection extends AbstractClient {
 		}
 	}
 	
-	private void handleReceiveGameRooms(GameRoomData[] rooms) {
+	private void handleReceiveNewGameRoomSuccess() {
+		this.createGameController.createGameSuccess();
+	}
+	
+	private void handleReceiveNewGameRoomFailure(NewGameRoomFailure newGameRoomFailure) {
+		this.createGameController.createGameFailure(newGameRoomFailure.getMessage());
+	}
+	
+	private void handleReceiveGameRooms(ArrayList<GameRoomData> rooms) {
 		selectGameController.setGameRooms(rooms);
 	}
 	
 	public void sendGameForVerification(Game game) {
-		GameData gameData = new GameData(game); 
 		try {
 			this.sendToServer(game);
 		} catch (IOException e) {
@@ -255,8 +310,18 @@ public class GameClientConnection extends AbstractClient {
 		}
 	}
 	
+	//this will need to be expanded on
+	public void sendPlayerLogoutDataForClose(PlayerData playerData) {
+		LogoutOperationForClose logoutOperation = new LogoutOperationForClose(playerData);
+		try {
+			this.sendToServer(logoutOperation);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public void sendPlayerNewAccountData(PlayerNewAccountData data) {
-		System.out.println("Sending from client");
 		try {
 			this.sendToServer(data);
 		} catch (IOException e) {
@@ -264,7 +329,7 @@ public class GameClientConnection extends AbstractClient {
 		}
 	}
 	
-	public void sendNewGameRoom(GameRoomData gameRoom) {
+	public void sendNewGameRoom(NewGameRoom gameRoom) {
 		try {
 			this.sendToServer(gameRoom);
 		} catch (IOException e) {
@@ -295,12 +360,41 @@ public class GameClientConnection extends AbstractClient {
 	}
 	
 	public void requestGameRooms() throws IOException {
-		ClientServerMessage message = new ClientServerMessage(); 
-		message.setMessageREQUEST_GAME_ROOMS();
+		RequestGameRooms requestGameRooms = new RequestGameRooms();  
 		try {
-			this.sendToServer(message);
+			this.sendToServer(requestGameRooms);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
+
+	public void handleSelectedGameRoom(String gameName) {
+		GameRoomData gameRoomData = new GameRoomData(gameName); 
+		SelectedGameRoom selectedGameRoom = new SelectedGameRoom(gameRoomData);
+		try {
+			this.sendToServer(selectedGameRoom);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		this.selectGameController.selectedGameSuccess();
+		
+	}
+
+
+	public void sendForfeit() {
+		// TODO Auto-generated method stub
+		try {
+			this.sendToServer(new LeftGame());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+	
+	
 }

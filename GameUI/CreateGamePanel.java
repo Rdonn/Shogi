@@ -18,7 +18,8 @@ public class CreateGamePanel extends JPanel{
 	private JLabel gameNameTitle; 
 	private JButton submit; 
 	private JButton cancel; 
-	public CreateGamePanel(GameGUI gameGUI, GameClientConnection gameClientConnection) {
+	
+	public CreateGamePanel(GameGUI gameGUI) {
 		this.title = new JLabel("Create game"); 
 		this.gameNameField = new JTextField(10);
 		this.gameNameTitle = new JLabel("Game Name"); 
@@ -28,7 +29,7 @@ public class CreateGamePanel extends JPanel{
 		this.cancel.setName("Cancel");
 		
 		//set the controller 
-		CreateGameController createGameController = new CreateGameController(this, gameGUI, gameClientConnection);
+		CreateGameController createGameController = new CreateGameController(this, gameGUI);
 		
 		this.submit.addActionListener(createGameController);
 		this.cancel.addActionListener(createGameController);
@@ -71,6 +72,14 @@ public class CreateGamePanel extends JPanel{
 		
 		
 	}	
+	
+	public JLabel getTitle() {
+		return title;
+	}
+	
+	public void setDefaultTitle() {
+		this.title.setText("Create game");
+	}
 	
 	public JTextField getGameNameField() {
 		return gameNameField;

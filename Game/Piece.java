@@ -1,8 +1,9 @@
 package Game;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Piece {
+public class Piece implements Serializable{
 
 	private final String id;
 	private boolean isPromoted = false;
