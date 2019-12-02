@@ -45,7 +45,8 @@ public class GameGUI extends JFrame{
 		// TODO Auto-generated constructor stub
 		
 		clientConnection = new GameClientConnection(); 
-		
+		clientConnection.setPort(PORT);
+		clientConnection.setHost(IP);
 		//we need this to run... so going to throw error from this constructor if it doesn't work, exiting before GUI logic
 		clientConnection.openConnection();
 		
