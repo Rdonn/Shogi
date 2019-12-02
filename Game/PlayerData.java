@@ -1,11 +1,13 @@
 package Game;
 
-public class PlayerData {
+import java.io.Serializable;
+
+public class PlayerData implements Serializable {
 	private String playerName; 
-	private String playerId; 
+	private Long playerId; 
 	
 	
-	public PlayerData(String playerName, String playerId) {
+	public PlayerData(String playerName, Long playerId) {
 		// TODO Auto-generated constructor stub
 		
 		this.playerId = playerId; 
@@ -13,7 +15,7 @@ public class PlayerData {
 		
 	}
 	
-	public String getPlayerId() {
+	public Long getPlayerId() {
 		return playerId;
 	}
 	public String getPlayerName() {

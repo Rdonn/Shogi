@@ -1,8 +1,9 @@
 package Game;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Piece {
+public class Piece implements Serializable{
 
 	private final String id;
 	private boolean isPromoted = false;
@@ -19,6 +20,7 @@ public class Piece {
 		this.promotable = promotable;
 		this.isKing = isKing;
 		this.moveset = moveset;
+		this.promotedMoveset = promotedMoveset; 
 		this.owner = owner; 
 		
 		//need to make sure that the direction is okay
@@ -57,7 +59,7 @@ public class Piece {
 	//dependent on direction the player 
 	private Integer[][] checkMoveset(Integer[][] moveSet) {
 		
-		Integer[][] tempMoveset = new Integer[moveSet.length][moveSet[0].length]; 
+		Integer[][] tempMoveset = new Integer[moveSet.length][3]; 
 		for(int i = 0; i < moveSet.length; i++) {
 			tempMoveset[i] = moveSet[i].clone(); 
 		}
@@ -77,6 +79,7 @@ public class Piece {
 	public String getOwner() {
 		return owner;
 	}
+
 	
 	public String getId() {
 		return id;
@@ -96,6 +99,9 @@ public class Piece {
 		// TODO Auto-generated method stub
 		return this.isPromoted; 
 
+	}
+	public Integer[][] getPromotedMoveset() {
+		return promotedMoveset;
 	}
 	public void printMoveset() {
 		// TODO Auto-generated method stub

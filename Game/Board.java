@@ -1,6 +1,8 @@
 package Game;
 
-public class Board {
+import java.io.Serializable;
+
+public class Board implements Serializable{
 	Piece gameBoard[][]; 
 	public Board() throws Exception {
 		this.gameBoard = new Piece[][] {

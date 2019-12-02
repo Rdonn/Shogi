@@ -1,7 +1,8 @@
 package Game;
 
+import java.io.Serializable;
 
-public class PieceFactory {
+public class PieceFactory implements Serializable{
 
 	// defining a moveset
 
@@ -30,7 +31,7 @@ public class PieceFactory {
 	}
 
 	public static Piece getSilverGeneral(String direction, String owner) throws Exception {
-		Integer[][] moveset = { { -1, -1, 1 }, { -1, 0, 1 }, { 1, 1, 1 }, { 1, -1, 1 } };
+		Integer[][] moveset = { { -1, -1, 1 }, { -1, 0, 1 }, { 1, 1, 1 },{-1,1,1}, { 1, -1, 1 },{0,1,1},{0,-1,1} };
 
 		Integer[][] promotedMoveset = { { -1, -1, 1 }, { -1, 0, 1 }, { -1, 1, 1 }, { 0, 1, 1 }, { -1, 0, 1 },
 				{ 0, -1, 1 } };
