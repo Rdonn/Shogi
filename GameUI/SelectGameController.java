@@ -35,7 +35,14 @@ public class SelectGameController implements ActionListener{
 		if (arg0.getSource() instanceof JButton) {
 			JButton referenceButton = (JButton) arg0.getSource(); 
 			if (referenceButton.getName().contentEquals("Select Game")) {
-				String gameName = this.selectGamePanel.getSelectGameBox().getSelectedItem().toString();
+				String gameName; 
+				try {
+					gameName = this.selectGamePanel.getSelectGameBox().getSelectedItem().toString();
+				} catch (Exception e) {
+					// TODO: handle exception
+					gameName = null; 
+				}
+				
 				if(gameName == null || gameName.equals("")) {
 					this.selectGamePanel.getError().setText("Please select a game");
 				}
@@ -55,6 +62,11 @@ public class SelectGameController implements ActionListener{
 					e.printStackTrace();
 				}
 			}
+			else if(referenceButton.getName().contentEquals("Logout")) {
+				GameGUI.getClientConnection().sendLogoutOperation(GameGUI.getPlayerData());
+				this.view.shuffleToInitial();
+			}
+			
 		}
 		
 	}

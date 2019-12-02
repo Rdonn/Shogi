@@ -60,7 +60,8 @@ public class GameGUI extends JFrame{
 		this.getContentPane().add("Login Panel",new LoginPanel(this)); 
 		this.getContentPane().add("Create Game Panel", new CreateGamePanel(this));
 		this.getContentPane().add("Select Game Panel", new SelectGamePanel(this)); 
-		this.getContentPane().add("Select Create Game Or Select Game Panel", new SelectCreateGameOrSelectGamePanel(this)); 
+		this.getContentPane().add("Select Create Game Or Select Game Panel", new SelectCreateGameOrSelectGamePanel(this));
+		this.getContentPane().add("Statistics Panel", new StatisticsPanel(this));
 		this.shuffleToInitial();
 		this.setVisible(true);
 		this.pack();
@@ -91,6 +92,11 @@ public class GameGUI extends JFrame{
 		CardLayout cardLayout = (CardLayout) this.getContentPane().getLayout(); 
 		cardLayout.show(this.getContentPane(), "Select Game Panel");
 
+	}
+	
+	public void shuffleToStatisticsPanel() {
+		CardLayout cardLayout = (CardLayout) this.getContentPane().getLayout(); 
+		cardLayout.show(this.getContentPane(), "Statistics Panel");
 	}
 	
 	public void shuffleSelectCreateGameOrSelectGamePanel() {

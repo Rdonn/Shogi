@@ -18,6 +18,7 @@ public class CreateGamePanel extends JPanel{
 	private JLabel gameNameTitle; 
 	private JButton submit; 
 	private JButton cancel; 
+	private JButton logoutButton; 
 	
 	public CreateGamePanel(GameGUI gameGUI) {
 		this.title = new JLabel("Create game"); 
@@ -27,22 +28,24 @@ public class CreateGamePanel extends JPanel{
 		this.cancel = new JButton("Cancel");
 		this.submit.setName("Submit");
 		this.cancel.setName("Cancel");
+		this.logoutButton = new JButton("Logout"); 
+		this.logoutButton.setName("Logout");
 		
 		//set the controller 
 		CreateGameController createGameController = new CreateGameController(this, gameGUI);
 		
 		this.submit.addActionListener(createGameController);
 		this.cancel.addActionListener(createGameController);
+		this.logoutButton.addActionListener(createGameController);
 		
-		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 		
 		//set up the first layer
 		JPanel titleHolder = new JPanel(); 
 		titleHolder.add(this.title); 
-		this.add(titleHolder); 
+		
 		
 		//add some white space
-		this.add(Box.createRigidArea(new Dimension(5,0))); 
+		
 		
 		//set up the second layer
 		JPanel userDataHolder = new JPanel(new GridLayout(1,2));
@@ -54,21 +57,35 @@ public class CreateGamePanel extends JPanel{
 		
 		userDataHolder.add(userTitleHolder); 
 		userDataHolder.add(userTextFieldHolder); 
-		this.add(userDataHolder); 
+		
 		
 		//add a little more white space
-		this.add(Box.createRigidArea(new Dimension(0,5)));
+		
 		
 		//set up the third layer
-		JPanel buttonHolder = new JPanel(new GridLayout(1,2)); 
+		JPanel buttonHolder = new JPanel(new GridLayout(1,3)); 
 		JPanel leftHolder = new JPanel(); 
+		JPanel centerButtonHolder = new JPanel(); 
 		JPanel rightHolder = new JPanel(); 
 		leftHolder.add(this.cancel); 
+		centerButtonHolder.add(this.logoutButton); 
 		rightHolder.add(this.submit); 
+		
+		
 		
 		buttonHolder.add(leftHolder); 
 		buttonHolder.add(rightHolder); 
-		this.add(buttonHolder); 
+		buttonHolder.add(centerButtonHolder); 
+		
+		JPanel panel = new JPanel(); 
+		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+		panel.add(titleHolder); 
+		panel.add(Box.createRigidArea(new Dimension(5,0))); 
+		panel.add(userDataHolder); 
+		panel.add(Box.createRigidArea(new Dimension(0,5))); 
+		panel.add(buttonHolder); 
+		this.add(panel); 
+		
 		
 		
 	}	

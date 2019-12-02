@@ -4,12 +4,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -22,9 +24,12 @@ public class GamePanel extends JPanel{
 	Board board; 
 	JButton takeTurn; 
 	JButton takeBackTurn; 
+	JButton getFromJail; 
 	JButton forfeit; 
 	JLabel errorTitle; 
 	JButton promoteButton; 
+	JComboBox<String> jailBox; 
+	
 	private JLabel title; 
 	public GamePanel(GameGUI gameGUI) {
 		try {
@@ -48,7 +53,7 @@ public class GamePanel extends JPanel{
 				buttonMap.put(String.format("(%d,%d)", i, j), tempReferenceToButton); 
 			}
 		}
-		
+		this.jailBox = new JComboBox<String>(); 
 		//now set up the board
 		controller.reflect();
 		
@@ -68,6 +73,9 @@ public class GamePanel extends JPanel{
 	   this.takeBackTurn = new JButton("Take Back Turn"); 
 	   this.forfeit = new JButton("Forfeit");
 	   this.promoteButton = new JButton("Promote"); 
+	   this.getFromJail = new JButton("Unjail"); 
+	   this.getFromJail.setName("Unjail");
+	   this.getFromJail.addActionListener(controller);
 	   this.promoteButton.addActionListener(controller);
 	   this.takeTurn.addActionListener(controller);
 	   this.takeBackTurn.addActionListener(controller);
@@ -79,21 +87,26 @@ public class GamePanel extends JPanel{
 	   this.forfeit.setName("Forfeit");
 	   
 	   
-	   JPanel holders[] = new JPanel[4]; 
+	   JPanel holders[] = new JPanel[6]; 
 	   for (int i = 0; i < holders.length; i++) {
 		holders[i] = new JPanel(); 
 		}
 	   holders[0].add(this.takeTurn); 
-	   holders[2].add(this.takeBackTurn); 
-	   holders[3].add(this.forfeit);
 	   holders[1].add(this.promoteButton); 
+	   holders[2].add(this.takeBackTurn); 
+	   holders[3].add(this.getFromJail); 
+	   holders[4].add(this.forfeit);
+	   holders[5].add(this.jailBox); 
+	   
+	   
+	   
 	   
 	   JPanel mainPanel = new JPanel(new FlowLayout());
 	   
 	   //need to add an error title
 	   this.errorTitle = new JLabel(); 
 	   this.errorTitle.setForeground(Color.RED);
-	   JPanel buttonPanel = new JPanel(new GridLayout(5,1)); 
+	   JPanel buttonPanel = new JPanel(new GridLayout(7,1)); 
 	   buttonPanel.add(this.errorTitle); 
 	   for (JPanel jPanel : holders) {
 		buttonPanel.add(jPanel); }
@@ -103,11 +116,23 @@ public class GamePanel extends JPanel{
 		mainPanel.add(board); 
 		
 		this.add(mainPanel); 
-		
+		this.disable();
 		
 		
 		
 	}
+	
+	public void disable() {
+		this.takeBackTurn.setEnabled(false);
+		this.takeTurn.setEnabled(false);
+		this.promoteButton.setEnabled(false);
+		this.getFromJail.setEnabled(false);
+		for (String pieceButton : this.buttonMap.keySet()) {
+			this.buttonMap.get(pieceButton).setEnabled(false);
+		}
+	}
+	
+	
 	public JButton getPromoteButton() {
 		return promoteButton;
 	}
@@ -126,6 +151,10 @@ public class GamePanel extends JPanel{
 	
 	public void setError(String error) {
 		this.errorTitle.setText(error);
+	}
+	
+	public JComboBox<String> getJailBox() {
+		return jailBox;
 	}
 	
 	public void clearError() {

@@ -7,10 +7,12 @@ import java.util.List;
 
 import Communication.ClientServerMessage;
 import Communication.GameData;
+import Communication.GameStatistics;
 import Communication.GetMessagesInstance;
 import Communication.LeftGame;
 import Communication.LoginFailure;
 import Communication.LoginSuccess;
+import Communication.LogoutOperation;
 import Communication.LogoutOperationForClose;
 import Communication.LogoutOperationForClose;
 import Communication.NewAccountFailure;
@@ -33,6 +35,7 @@ import GameUI.GameController;
 import GameUI.GameGUI;
 import GameUI.LoginController;
 import GameUI.SelectGameController;
+import GameUI.StatisticsController;
 import ocsf.client.AbstractClient;
 
 public class GameClientConnection extends AbstractClient {
@@ -42,6 +45,7 @@ public class GameClientConnection extends AbstractClient {
 	private LoginController loginController;
 	private CreateAccountController createAccountController;
 	private CreateGameController createGameController;
+	private StatisticsController statisticsController; 
 	
 	/***
 	 * Uses '127.0.0.1:8300' as default host
@@ -87,6 +91,12 @@ public class GameClientConnection extends AbstractClient {
 		this.gameController = gameController;
 	}
 
+	public void setStatisticsController(StatisticsController statisticsController) {
+		this.statisticsController = statisticsController;
+	}
+	public StatisticsController getStatisticsController() {
+		return statisticsController;
+	}
 
 	public SelectGameController getSelectGameController() {
 		return selectGameController;
@@ -158,6 +168,11 @@ public class GameClientConnection extends AbstractClient {
 			NewGameRoomFailure newGameRoomFailure = (NewGameRoomFailure) object; 
 			this.handleReceiveNewGameRoomFailure(newGameRoomFailure);
 		}
+		else if(object instanceof GameStatistics) {
+			System.out.println("Game statistics received");
+			GameStatistics gameStatistics = (GameStatistics) object; 
+			this.statisticsController.setStatistics(gameStatistics);
+		}
 		else if(object instanceof LeftGame) {
 			System.out.println("left game received by client");
 			LeftGame leftGame = (LeftGame) object; 
@@ -174,12 +189,32 @@ public class GameClientConnection extends AbstractClient {
 				
 			}
 			else {
+				ArrayList<GameRoomData> gameRoomDatas = (ArrayList<GameRoomData>) arrayList;
+				this.handleReceiveGameRooms(gameRoomDatas);
 				//debuggin section. can be removed
 			}
 		}
 		else if(object instanceof Game) {
-			System.out.println("Game received");
+			
+			
 			Game game = (Game) object; 
+			
+			if (game.getPieces() != null) {
+				this.gameController.renderPieces(game.getPieces());
+			}
+			
+			if(game.getWinner() != null) {
+				this.gameController.setTitle(game.getWinnerMessage());
+				this.gameController.disable();
+				this.gameController.otherUserForfeiter();
+				return; 
+				
+			}
+			
+			if (game.getErrorMessage() != null) {
+				this.gameController.setError(game.getErrorMessage());
+			}
+			System.out.println(game.isYourTurn());
 			if(game.isYourTurn()) {
 				this.gameController.enable(); 
 			}
@@ -310,7 +345,14 @@ public class GameClientConnection extends AbstractClient {
 		}
 	}
 	
-	//this will need to be expanded on
+	public void sendLogoutOperation(PlayerData playerData) {
+		try {
+			this.sendToServer(new LogoutOperation(playerData));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public void sendPlayerLogoutDataForClose(PlayerData playerData) {
 		LogoutOperationForClose logoutOperation = new LogoutOperationForClose(playerData);
 		try {
@@ -392,6 +434,21 @@ public class GameClientConnection extends AbstractClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+
+	public void sendGameStatistics(PlayerData playerData) {
+		GameStatistics gameStatistics = new GameStatistics(); 
+		gameStatistics.setUsername(playerData.getPlayerName());
+		try {
+			this.sendToServer(gameStatistics);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.out.println("Sent successfully");
+		
 	}
 
 
