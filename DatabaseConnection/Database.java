@@ -29,9 +29,13 @@ public class Database {
 			this.conn = DriverManager.getConnection(url, user, pass); 
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw e; 
 		}
-		
+	}
+	
+	public String getKey() {
+		return key;
 	}
 	
 	public void saveAccount(User userToAdd) {
@@ -46,6 +50,7 @@ public class Database {
 			this.executeDML(dml2);
 		} catch (Exception e) {
 			System.out.println("DML error");
+			e.printStackTrace();
 		}
 	}
 	
@@ -128,7 +133,8 @@ public class Database {
 	
 	public void executeDML(String dml) throws SQLException{
 		
-		Statement statement = this.conn.createStatement(); 
+		Statement statement = this.conn.createStatement();
 		statement.execute(dml); 
+		
 	}
 }
