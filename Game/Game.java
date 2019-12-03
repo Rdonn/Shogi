@@ -18,11 +18,15 @@ public class Game implements Serializable {
 	private boolean isPromoting; 
 	private boolean isMoving; 
 	private boolean isGettingOutOfJail; 
+	private int[] isGettingOutOfJailLocation; 
 	private int[][] pieceMovedLocation; 
 	private int[] promotionLocation; 
 	private String errorMessage; 
+	private String winner; 
+	private String winnerMessage; 
 	public Game() {
 		// TODO Auto-generated constructor stub
+		this.pieces = new ArrayList<Piece>(); 
 		try {
 			this.board = new Board();
 		} catch (Exception e) {
@@ -118,5 +122,26 @@ public class Game implements Serializable {
 	}
 	public String getErrorMessage() {
 		return errorMessage;
+	}
+	public void setWinner(String winner) {
+		this.winner = winner;
+	}
+	public String getWinner() {
+		return winner;
+	}
+	public ArrayList<Piece> getPieces() {
+		return pieces;
+	}
+	public void setWinnerMessage(String winnerMessage) {
+		this.winnerMessage = winnerMessage;
+	}
+	public String getWinnerMessage() {
+		return winnerMessage;
+	}
+	public int[] getIsGettingOutOfJailLocation() {
+		return isGettingOutOfJailLocation;
+	}
+	public boolean isGettingOutOfJail() {
+		return isGettingOutOfJail;
 	}
 }

@@ -35,6 +35,10 @@ public class CreateGameController implements ActionListener{
 			else if(actionButton.getName().equals("Cancel")) {
 				this.view.shuffleSelectCreateGameOrSelectGamePanel();
 			}
+			else if(actionButton.getName().equals("Logout")){
+				GameGUI.getClientConnection().sendLogoutOperation(GameGUI.getPlayerData());
+				this.view.shuffleToInitial(); 
+			}
 		}
 		
 	}

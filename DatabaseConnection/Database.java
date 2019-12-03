@@ -29,9 +29,13 @@ public class Database {
 			this.conn = DriverManager.getConnection(url, user, pass); 
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw e; 
 		}
-		
+	}
+	
+	public String getKey() {
+		return key;
 	}
 	
 	public void saveAccount(User userToAdd) {
@@ -40,10 +44,13 @@ public class Database {
 								   userToAdd.getUsername(), 
 								   userToAdd.getPassword(), 
 								   this.key); 
+		String dml2 = String.format("insert into STATISTICS values('%s',0,0)", userToAdd.getUsername());
 		try {
 			this.executeDML(dml);
+			this.executeDML(dml2);
 		} catch (Exception e) {
-			
+			System.out.println("DML error");
+			e.printStackTrace();
 		}
 	}
 	
@@ -73,6 +80,33 @@ public class Database {
 		}
 	}
 	
+	public void increment(String username, boolean winOrLoss) {
+		String[] result = this.query(String.format("Select * from STATISTICS where username='%s'", username)).get(0).split(",");
+		for (int i = 0; i < result.length; i++) {
+			result[i] = result[i].trim();
+		}
+		
+		String user = result[0]; 
+		int gamesWon = Integer.parseInt(result[1]);
+		int gamesLost = Integer.parseInt(result[2]);
+		
+		if (winOrLoss) {
+			gamesWon += 1; 
+			
+		}
+		else {
+			gamesLost += 1; 
+		}
+		String dml = String.format("UPDATE STATISTICS SET username = '%s', gamesWon = %d, gamesLost = %d WHERE username='%s'", user, gamesWon, gamesLost,user);
+		try {
+			this.executeDML(dml);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public ArrayList<String> query(String query){
 		ArrayList<String> toReturn = new ArrayList<String>(); 
 		try {
@@ -99,7 +133,8 @@ public class Database {
 	
 	public void executeDML(String dml) throws SQLException{
 		
-		Statement statement = this.conn.createStatement(); 
+		Statement statement = this.conn.createStatement();
 		statement.execute(dml); 
+		
 	}
 }

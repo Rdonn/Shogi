@@ -31,7 +31,7 @@ public class PieceFactory implements Serializable{
 	}
 
 	public static Piece getSilverGeneral(String direction, String owner) throws Exception {
-		Integer[][] moveset = { { -1, -1, 1 }, { -1, 0, 1 }, { 1, 1, 1 }, { 1, -1, 1 } };
+		Integer[][] moveset = { { -1, -1, 1 }, { -1, 0, 1 }, { 1, 1, 1 },{-1,1,1}, { 1, -1, 1 },{0,1,1},{0,-1,1} };
 
 		Integer[][] promotedMoveset = { { -1, -1, 1 }, { -1, 0, 1 }, { -1, 1, 1 }, { 0, 1, 1 }, { -1, 0, 1 },
 				{ 0, -1, 1 } };

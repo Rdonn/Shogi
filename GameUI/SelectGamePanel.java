@@ -16,6 +16,7 @@ public class SelectGamePanel extends JPanel{
 	JComboBox<String> selectGameBox; 
 	JButton cancelButton; 
 	JButton refreshButton; 
+	JButton logoutButton; 
 	public SelectGamePanel(GameGUI gameGUI) {
 		this.selectGameBox = new JComboBox<String>(); 
 		this.selectGameButton = new JButton("Select Game"); 
@@ -24,6 +25,8 @@ public class SelectGamePanel extends JPanel{
 		this.cancelButton.setName("Cancel");
 		this.refreshButton= new JButton("Refresh"); 
 		this.refreshButton.setName("Refresh");
+		this.logoutButton = new JButton("Logout");
+		this.logoutButton.setName("Logout");
 		this.error = new JLabel();
 		this.error.setForeground(Color.red);
 		this.title = new JLabel("Select A Game To Begin Playing with a player"); 
@@ -40,6 +43,7 @@ public class SelectGamePanel extends JPanel{
 		buttonHolder.add(this.selectGameButton); 
 		buttonHolder.add(this.cancelButton); 
 		buttonHolder.add(this.refreshButton); 
+		buttonHolder.add(this.logoutButton); 
 		
 		
 		SelectGameController selectGamePanel = new SelectGameController(this, gameGUI); 
@@ -48,7 +52,7 @@ public class SelectGamePanel extends JPanel{
 		this.selectGameButton.addActionListener(selectGamePanel);
 		this.cancelButton.addActionListener(selectGamePanel);
 		this.refreshButton.addActionListener(selectGamePanel);
-		
+		this.logoutButton.addActionListener(selectGamePanel);
 		this.add(buttonHolder);
 		this.add(selectPlayerBoxHolder);
 		

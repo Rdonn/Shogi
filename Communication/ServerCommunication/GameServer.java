@@ -13,9 +13,11 @@ import java.util.Set;
 
 import javax.swing.JLabel;
 import Communication.ClientServerMessage;
+import Communication.GameStatistics;
 import Communication.LeftGame;
 import Communication.LoginFailure;
 import Communication.LoginSuccess;
+import Communication.LogoutOperation;
 import Communication.LogoutOperationForClose;
 import Communication.NewAccountFailure;
 import Communication.NewAccountSuccess;
@@ -24,6 +26,7 @@ import Communication.NewGameRoomFailure;
 import Communication.NewGameRoomSuccess;
 import Communication.RequestGameRooms;
 import Communication.SelectedGameRoom;
+import Communication.TestObject;
 import DatabaseConnection.Database;
 import DatabaseConnection.User;
 import Game.Game;
@@ -88,7 +91,6 @@ public class GameServer extends AbstractServer {
 		// TODO Auto-generated method stub
 		this.serverGUI.getLog().append(String.format("Client %d: ", client.getId()));
 		exception.printStackTrace();
-		exception.getCause().printStackTrace();
 		
 	}
 	@Override
@@ -143,6 +145,29 @@ public class GameServer extends AbstractServer {
 				System.out.println(String.format("Error in login logic and server client communication: %s", e.getMessage()));
 			}
 		}
+		else if (object instanceof GameStatistics) {
+			GameStatistics gameStatistics = (GameStatistics) object; 
+			ArrayList<String> result = this.database.query(String.format("Select * from STATISTICS where username='%s'", gameStatistics.getUsername()));
+			System.out.println(result.get(0));
+			String[] resultStrings = result.get(0).split(",");
+			try {
+				connection.sendToClient(new GameStatistics(resultStrings[0], resultStrings[1], resultStrings[2]));
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if (object instanceof LogoutOperation) {
+			LogoutOperation logoutOperation = (LogoutOperation) object; 
+			if (this.gameMap.containsKey(logoutOperation.getPlayerData().getPlayerName())) {
+				this.gameMap.remove(logoutOperation.getPlayerData().getPlayerName());
+				if (this.gameRoomNamesInUse.contains(logoutOperation.getPlayerData().getPlayerName())) {
+					this.gameRoomNamesInUse.remove(logoutOperation.getPlayerData().getPlayerName());
+				}
+			}
+			this.handleLogoutOperationForClose(logoutOperation.getPlayerData());
+		}
 		
 		else if(object instanceof PlayerNewAccountData) {
 			System.out.println("New account data received");
@@ -188,6 +213,7 @@ public class GameServer extends AbstractServer {
 		}
 		
 		else if (object instanceof RequestGameRooms) {
+			this.printGameRooms();
 			try {
 				connection.sendToClient(this.handleRequestGameRooms());
 			} catch (IOException e) {
@@ -207,6 +233,7 @@ public class GameServer extends AbstractServer {
 			System.out.println(String.format("Username:%s | ID: %d", usernameForJoiningPlayer, connection.getId()));
 			//need to get the username of the player that is waiting in the game room
 			String usernameForWaitingPlayer = this.gameNameToUsername.get(gameRoomName); 
+			System.out.println(usernameForWaitingPlayer);
 			this.handleSelectedGameRequest(gameRoomName, usernameForJoiningPlayer, usernameForWaitingPlayer); 
 			
 		}
@@ -215,6 +242,12 @@ public class GameServer extends AbstractServer {
 			System.out.println("Logout operation");
 			LogoutOperationForClose logoutOperation = (LogoutOperationForClose) object; 
 			PlayerData playerData = logoutOperation.getPlayerData(); 
+			if (this.gameMap.containsKey(logoutOperation.getPlayerData().getPlayerName())) {
+				this.gameMap.remove(logoutOperation.getPlayerData().getPlayerName());
+				if (this.gameRoomNamesInUse.contains(logoutOperation.getPlayerData().getPlayerName())) {
+					this.gameRoomNamesInUse.remove(logoutOperation.getPlayerData().getPlayerName());
+				}
+			}
 			try {
 				connection.close();
 			} catch (IOException e) {
@@ -234,13 +267,13 @@ public class GameServer extends AbstractServer {
 			String opponentUser = (refGame.getPlayerOne().equals(justWentUser)) ? refGame.getPlayerTwo() : refGame.getPlayerOne(); 
 			Game defactoGame = (Game) object;
 			
-			
+			defactoGame.getBoard().printBoard();
 			boolean acceptable; 
 			if (defactoGame.isMoving()) {
-				acceptable = GameLogic.handleMove(defactoGame); 
+				acceptable = GameLogic.handleMove(refGame, defactoGame, justWentUser); 
 			}
 			else if(defactoGame.isPromoting()) {
-				acceptable = GameLogic.handlePromotion(defactoGame); 
+				acceptable = GameLogic.handlePromotion(defactoGame, justWentUser); 
 			}
 			else {
 				acceptable = true; 
@@ -265,8 +298,51 @@ public class GameServer extends AbstractServer {
 			
 			//if the move was acceptable, we just apply the move and send it back to the users
 			if (acceptable) {
-				GameLogic.applyMove(defactoGame);//need to figure out the context from the boolean flags
+				if (defactoGame.getWinner() != null) {
+					//someone won
+					if(defactoGame.getWinner().contentEquals(justWentUser)) {
+						this.database.increment(justWentUser, true);
+						this.database.increment(opponentUser, false);
+						try {
+							defactoGame.setWinnerMessage("You won! congrats!");
+							justWentConnection.sendToClient(defactoGame);
+							defactoGame.setWinnerMessage("You Lost! Sorry");
+							opponentConnection.sendToClient(defactoGame);
+							if (this.gameMap.containsKey(justWentUser)) {
+								this.gameMap.remove(justWentUser); 
+							}
+							if(this.gameMap.containsKey(opponentUser)){
+								this.gameMap.remove(opponentUser); 
+							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					else {
+						this.database.increment(justWentUser, false);
+						this.database.increment(opponentUser, true);
+						try {
+							defactoGame.setWinnerMessage("You Lost! Sorry");
+							justWentConnection.sendToClient(defactoGame);
+							defactoGame.setWinnerMessage("You won! Congrats");
+							opponentConnection.sendToClient(defactoGame);
+							if (this.gameMap.containsKey(justWentUser)) {
+								this.gameMap.remove(justWentUser); 
+							}
+							if(this.gameMap.containsKey(opponentUser)){
+								this.gameMap.remove(opponentUser); 
+							}
+						} catch (Exception e) {
+							// TODO: handle exception
+						}
+					}
+					return;
+				}
 				
+				
+				//make sure the message is removed
+				defactoGame.setErrorMessage(null);
 				try {
 					defactoGame.setYourTurn(false);
 					justWentConnection.sendToClient(defactoGame);
@@ -281,11 +357,13 @@ public class GameServer extends AbstractServer {
 			} 
 			//if the move was unacceptable, just redo!!!
 			else {
+				refGame.setErrorMessage("Illegal operation!");
 				try {
 					refGame.setYourTurn(true); 
 					justWentConnection.sendToClient(refGame);
+					refGame.setErrorMessage(null);
 					refGame.setYourTurn(false);
-					justWentConnection.sendToClient(refGame);
+					opponentConnection.sendToClient(refGame);
 				} catch (Exception e) {
 					// TODO: handle exception
 				}
@@ -298,23 +376,72 @@ public class GameServer extends AbstractServer {
 			LeftGame leftGame = (LeftGame) object; 
 			LeftGame response = new LeftGame(); 
 			String userThatSentRequest = this.playerMap.get(Long.toString(connection.getId())); 
-			response.setMessage(String.format("User: %s has left the game. YOU WIN!", userThatSentRequest));
+			
+			
+			
 			//find out who else was in the damn game...
 			Game refGame = this.usernameToGameroom.get(userThatSentRequest); 
-			String userToRepondTo = refGame.getPlayerOne().equals(userThatSentRequest) ? refGame.getPlayerTwo() : refGame.getPlayerOne();
-			//now that we have the user to respond to, we need to get their connection reference
-			for (Thread connectionToClient : this.getClientConnections()) {
-				if (this.playerMap.get(Long.toString(connectionToClient.getId())).contentEquals(userToRepondTo)) {
-					ConnectionToClient connectionToClient2 = (ConnectionToClient) connectionToClient; 
-					try {
-						connectionToClient2.sendToClient(response);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			try {
+				String userToRepondTo = refGame.getPlayerOne().equals(userThatSentRequest) ? refGame.getPlayerTwo() : refGame.getPlayerOne();
+				//now that we have the user to respond to, we need to get their connection reference
+				for (Thread connectionToClient : this.getClientConnections()) {
+					if (this.playerMap.get(Long.toString(connectionToClient.getId())).contentEquals(userToRepondTo)) {
+						ConnectionToClient connectionToClient2 = (ConnectionToClient) connectionToClient; 
+						try {
+							//do some cleanup.
+							if (this.gameMap.containsKey(userThatSentRequest)) {
+								try {
+									this.gameRoomNamesInUse.remove(this.gameMap.get(userThatSentRequest).getName());
+								} catch (Exception e) {
+									// TODO: handle exception
+								}
+								
+								this.gameMap.remove(userThatSentRequest); 
+							}
+							if (this.gameMap.containsKey(userToRepondTo)) {
+								try {
+									this.gameRoomNamesInUse.remove(this.gameMap.get(userToRepondTo).getName());
+								} catch (Exception e) {
+									// TODO: handle exception
+								}
+								
+								this.gameMap.remove(userToRepondTo); 
+							}
+							if (this.usernameToGameroom.containsKey(userToRepondTo)) {
+								this.usernameToGameroom.remove(userToRepondTo); 
+							}
+							if (this.usernameToGameroom.containsKey(userThatSentRequest)) {
+								this.usernameToGameroom.remove(userThatSentRequest); 
+							}
+							
+							response.setMessage(String.format("User: %s has left the game. YOU LOSE!", userThatSentRequest));
+							this.database.increment(userThatSentRequest, false);
+							connection.sendToClient(response);
+							response.setMessage(String.format("User: %s has left the game. YOU WIN!", userThatSentRequest));
+							this.database.increment(userToRepondTo, true);
+							connectionToClient2.sendToClient(response);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
 					}
-					return; 
+				}
+				return;
+			} catch (Exception e) {
+				//this means that not both players were in the match... so exit gracefully
+				response.setMessage("You left the game. Press leave to exit");
+				try {
+					connection.sendToClient(response);
+					this.gameRoomNamesInUse.remove(this.gameMap.get(userThatSentRequest).getName()); 
+					this.gameMap.remove(userThatSentRequest); 
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 			}
+			
 			
 		}
 		

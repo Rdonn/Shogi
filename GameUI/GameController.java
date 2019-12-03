@@ -4,10 +4,12 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.Format;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import Communication.ServerCommunication.GameRoomData;
 import Game.Board;
 import Game.Game;
 import Game.Piece;
@@ -30,6 +32,7 @@ public class GameController implements ActionListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -150,6 +153,11 @@ public class GameController implements ActionListener {
 					GameGUI.getClientConnection().sendForfeit(); 
 				}
 				else if(buttonClicked.getName().equals("Leave")) {
+					this.referencePanel.getTitle().setForeground(Color.black);
+					this.referencePanel.getTitle().setText(" ");
+					this.referencePanel.getForfeit().setText("Forfeit");
+					this.referencePanel.getForfeit().setName("Forfeit");
+					this.setGame(new Game());
 					this.view.shuffleSelectCreateGameOrSelectGamePanel();
 				}
 				else if(buttonClicked.getName().equals("Surrender")) {
@@ -165,6 +173,7 @@ public class GameController implements ActionListener {
 		this.referencePanel.getTakeBackTurn().setEnabled(false);
 		this.referencePanel.getTakeTurn().setEnabled(false);
 		this.referencePanel.getPromoteButton().setEnabled(false);
+		this.referencePanel.getFromJail.setEnabled(false);
 		for (String key : this.referencePanel.getButtonMap().keySet()) {
 			this.referencePanel.getButtonMap().get(key).setEnabled(false);
 		}
@@ -174,13 +183,14 @@ public class GameController implements ActionListener {
 		this.referencePanel.getTakeBackTurn().setEnabled(true);
 		this.referencePanel.getTakeTurn().setEnabled(true);
 		this.referencePanel.getPromoteButton().setEnabled(true);
+		this.referencePanel.getFromJail.setEnabled(true);
 		for (String key : this.referencePanel.getButtonMap().keySet()) {
 			this.referencePanel.getButtonMap().get(key).setEnabled(true);
 		}
 	}
 	
 	public void setTitle(String playerData, String playerData2) {
-		this.referencePanel.getTitle().setText(String.format("you are player %d: %s vs. %s",this.playerOneOrTwo(this.game), playerData, playerData2)); 
+		this.referencePanel.getTitle().setText(String.format("you are player %d [direction: %s]: %s vs. %s",this.playerOneOrTwo(this.game),(this.playerOneOrTwo(this.game) == 1) ? this.game.getPlayerOneAlias(): this.game.getPlayerTwoAlias(), playerData, playerData2)); 
 	}
 	
 	public void thisUserForfeited() {
@@ -196,6 +206,7 @@ public class GameController implements ActionListener {
 	}
 	
 	public void otherUserForfeiter() {
+		this.disable();
 		this.referencePanel.getForfeit().setText("Leave");
 		this.referencePanel.getForfeit().setName("Leave");
 	}
@@ -227,12 +238,26 @@ public class GameController implements ActionListener {
 		}
 	}
 	
+	public void setError(String error){
+		this.referencePanel.setError(error);
+	}
+	
 	private boolean checkIfSpaceHasPiece(String space) {
 		int[] coorHolder = parseCoordinates(space); 
 		
 		return this.game.getBoard().getGameBoard()[coorHolder[0]][coorHolder[1]] != null; 
 	}
-	
+	public void renderPieces(ArrayList<Piece> pieces) {
+		/*
+		this.selectGamePanel.getSelectGameBox().removeAllItems();
+		for (GameRoomData gameRoomData : gameRooms) {
+			this.selectGamePanel.getSelectGameBox().addItem(gameRoomData.getName());
+		}*/
+		this.referencePanel.getJailBox().removeAllItems();
+		for (Piece piece : pieces) {
+			this.referencePanel.getJailBox().addItem(piece.getId());
+		}
+	}
 	public void reflect(){
 		for (int i = 0; i < this.game.getBoard().getGameBoard().length; i++) {
 			for (int j = 0; j < this.game.getBoard().getGameBoard()[i].length; j++) {
@@ -240,6 +265,9 @@ public class GameController implements ActionListener {
 				.getButtonMap()
 				.get(String.format("(%d,%d)", i, j))
 				.setPiece(this.game.getBoard().getGameBoard()[i][j]);
+				this.referencePanel
+				.getButtonMap()
+				.get(String.format("(%d,%d)", i, j)).repaint();
 			}
 		}
 	}
